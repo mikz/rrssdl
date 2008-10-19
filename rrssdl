@@ -1,0 +1,190 @@
+#!/usr/bin/ruby
+
+require 'rss/1.0'
+require 'rss/2.0'
+require 'open-uri'
+require 'optparse'
+require 'timeout'
+
+require 'ConfigFile.rb'
+require 'Show.rb'
+require 'Feed.rb'
+
+class Time
+    def to_s
+        sprintf "%0.2d:%0.2d:%0.2d.%0.6d", hour, min, sec, tv_usec
+    end
+end
+
+class RubyRssDownloader
+    attr_reader :conf, :shows, :feeds
+
+    $VERSION = 1.0
+
+    def initialize(args)
+
+        params = {'file' => '~/.rrssdlrc'}
+        begin
+            OptionParser.new do |opts|
+                opts.banner =
+<<EOF
+Ruby RSS Feed Downloader (TV Show Edition) v#{$VERSION}
+
+Usage: rrssdl [options]
+
+Options:
+    -d | --debug        set debug mode (blank is ON, default is OFF)
+    -v | --verbose      set verbose mode (blank is ON, default is OFF)
+    -c | --config path  set config file using path (default is ~/.rrssdlrc)
+    -D | --daemon       run as a daemon (SIGINT exist, SIGHUP reloads config)
+EOF
+
+                opts.on('-h', '--help') do 
+                    opts.help
+                    exit(0)
+                end
+                opts.on('-d', '--debug') do
+                    params['debug'] = true
+                    log(true, "DEBUG = 'ON'")
+                end
+                opts.on('-v', '--verbose') do
+                    params['verbose'] = true
+                    log(true, "VERBOSE = 'ON'")
+                end
+
+                opts.on('-c', '--config [ARG]') do |c| 
+                    params['file'] = c
+                    log(true, "Config Path = #{c}")
+                end
+                opts.on('-D', '--daemon') do
+                    params['daemon'] = true
+                    log(true, "DAEMON MODE = 'ON'")
+                end
+            end.parse!(args)
+        rescue => e
+            log(true, "Option Parser Error: #{e}")
+        end
+
+        @conf = ConfigFile.new(self)
+        @conf.init_params(params)
+        if @conf.has_key?('log_file')
+            log(verbose, 'Clearing Previous Log File')
+            open(File.expand_path(@conf['log_file']), 'w')
+        end
+
+        init_settings
+    end
+
+    def log(level, text)
+        if level
+            puts text
+            if not @conf.nil? and @conf.has_key?('log_file')
+                begin
+                    open(File.expand_path(@conf['log_file']), 'a').write("[#{Time.new.to_s}] #{text}\r\n")
+                rescue => e
+                    warn "Log File Error: #{e}"
+                end
+            end
+        end
+    end
+
+    def debug
+        @conf.has_key?('debug') 
+    end
+
+    def verbose
+        @conf.has_key?('verbose')
+    end
+
+    def init_settings
+        log(debug, "Initializing In-Memory Settings")
+        @shows = Hash.new
+        @feeds = Hash.new
+
+        log(verbose, 'Building Feed Collection...')
+        @conf.get_list('enabled_feed_ids').each do |f|
+            fi = @conf.get_list(f)
+            next if fi.length != 2
+            @feeds[f] = Feed.new(self, f, fi[0], fi[1])
+            log(debug, @feeds[f].to_s)
+        end
+
+        log(verbose, 'Building Show Collection...')
+        @conf.get_list('enabled_show_ids').each do |s|
+            si = @conf.get_list(s)
+            next if si.length < 3
+            @shows[s] = Show.new(self, s, si.shift, si.shift, si.shift, si)
+            log(debug, @shows[s].to_s)
+        end
+
+        load_state
+    end
+
+    def load_state
+        log(verbose, 'Loading State File...')
+        @state = ConfigFile.new(self)
+        @state.file = @conf['state_file']
+        @state.read_file
+        @state.each_key do |k|
+            next unless @shows.has_key?(k)
+            si = state.get_list(k)
+            @shows[k].load_state(si)
+        end
+    end
+
+    def save_state
+        log(verbose, 'Saving State File...')
+        @shows.each_value do |s|
+            @state[s.id] = s.get_state
+        end
+        state.write_file
+    end
+
+    def refresh_feeds
+        log(verbose, 'Refreshing Feeds...')
+        @feeds.each_value do |f|
+            f.refresh_feed
+        end
+        log(verbose, 'Feeds Refreshed')
+    end
+
+    def run
+        # catch Ctrl-C (Exit)
+        Kernel.trap('INT') do
+            save_state
+            log(verbose, 'Exiting...')
+            exit(0)
+        end
+        
+        # catch SIGHUP
+        Kernel.trap('HUP') do
+            log(verbose, 'Reloading Config...')
+            # kill all feed timers
+            @conf.read_file
+            init_settings
+            refresh_feeds
+        end
+
+        # force initial refresh
+        refresh_feeds
+
+        if @conf.has_key?('daemon')
+            log(verbose, 'Daemonizing...')
+            pid = fork do
+                log(verbose, "Daemon PID = #{pid}")
+                main_loop
+            end
+        else
+            main_loop
+        end
+    end
+
+    def main_loop
+        loop do
+            sleep 60
+        end
+    end
+end
+
+rss = RubyRssDownloader.new($ARGV)
+rss.run
