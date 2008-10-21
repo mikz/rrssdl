@@ -2,9 +2,12 @@ require 'timeout'
 require 'open-uri'
 require 'rss/1.0'
 require 'rss/2.0'
+require 'thread'
 
 class Feed
     attr_accessor :id, :refresh_sec, :uri
+
+    $mut = Mutex.new
 
     def initialize(main, id, uri, refresh_min)
         @main = main
@@ -19,7 +22,7 @@ class Feed
             timeout = @refresh_sec if timeout == 0
             loop do
                 sleep(@refresh_sec)
-                Timeout::timeout(timeout) { refresh_feed }
+                Timeout::timeout(timeout) { $mut.syncronize { refresh_feed } }
             end
         end
     end

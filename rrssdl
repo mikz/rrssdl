@@ -5,6 +5,7 @@ require 'optparse'
 require 'ConfigFile.rb'
 require 'Show.rb'
 require 'Feed.rb'
+require 'Logger.rb'
 
 class Time
     def to_s
@@ -18,9 +19,10 @@ class RubyRssDownloader
     $VERSION = '0.1 BETA'
 
     def initialize(args)
-
-        params = {'file' => '~/.rrssdlrc'}
         begin
+            params = {'file' => '~/.rrssdlrc'}
+            @logger = Logger.new(self)
+
             OptionParser.new do |opts|
                 opts.banner =
 <<EOF
@@ -69,24 +71,19 @@ EOF
         @conf = ConfigFile.new(self)
         @conf.init_params(params)
         if @conf.has_key?('log_file')
-            log(verbose, 'Clearing Previous Log File')
-            open(File.expand_path(@conf['log_file']), 'w')
+            log(verbose, 'Deleting Previous Log File')
+            begin
+                File.delete(File.expand_path(@conf['log_file']))
+            rescue => e
+                log(true, "WARNING: Log File: #{e}")
+            end
         end
 
         init_settings
     end
 
     def log(level, text)
-        if level and not @conf.nil?
-            puts text unless @conf.has_key?('quiet')
-            if @conf.has_key?('log_file')
-                begin
-                    open(File.expand_path(@conf['log_file']), 'a').write("[#{Time.new.to_s}] #{text}\r\n")
-                rescue => e
-                    warn "Log File Error: #{e}"
-                end
-            end
-        end
+        @logger.log(level, text)
     end
 
     def debug

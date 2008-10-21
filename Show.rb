@@ -39,12 +39,16 @@ class Show
         @rxSeasonEp.each do |rx|
             log(debug, "Matching '#{title}' with regex '#{rx}'")
             m = Regexp.new(rx, Regexp::IGNORECASE).match(title)
-            unless m.nil?
+            if m.nil?
+                log(debug, "#{id} didn't match #{title}")
+            else
+                log(debug, "#{id} Matches #{title}")
                 if  (m[1].to_i == @cur_season and m[2].to_i > @cur_episode) or m[1].to_i > @cur_season
                     log(verbose, "Found New Show For #{@id}: Season #{m[1]}, Episode #{m[2]}")
                     return m[1,2]
                 else
                     log(debug, "'#{title}' Is Older Than Season #{@cur_season}, Episode #{@cur_episode}")
+                    return false
                 end
             end
         end
@@ -54,11 +58,16 @@ class Show
     def match(i)
         log(debug, "Matching '#{i.title}' With '#{@regex}'")
         m = Regexp.new(@regex, Regexp::IGNORECASE).match(i.title)
-        unless m.nil?
+        if m.nil?
+            log(debug, "#{@id} doesn't match")
+        else
             log(debug, "#{@id} matches '#{i.title}'")
             ep_info = new_show?(i.title)
             dlpath = nil
-            if ep_info.nil?
+            if ep_info == false
+                log(debug, "#{i.title} is old, skipping")
+                return
+            elsif ep_info.nil?
                 log(verbose, "WARNING: Couldn't Determin Season and Episode Info For '#{i.title}'")
                 dlpath = File.join(File.expand_path(conf['download_path_review']), "REVIEW-#{i.title.gsub(/[^\w]/, '_')}.torrent")
             else
