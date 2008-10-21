@@ -9,7 +9,7 @@ fi
 
 mkdir -p $1/bin
 mkdir -p $1/share/rrssdl
-cp ConfigFile.rb Feed.rb rrssdl rrssdlrc Show.rb $1/share/rrssdl
+cp *.rb rrssdl rrssdlrc $1/share/rrssdl
 cat > $1/bin/rrssdl <<EOF
 #!/bin/bash
 
