@@ -1,0 +1,19 @@
+This is just a quick readme in case you didn't read anything on the project web page (http://code.google.com/p/rrssdl/)
+
+This whole package is set up to work almost out of the box.  You should be able to use the installer to install it, or just run it from its current location.  The following are some examples on how to use each method.
+
+INSTALLING
+  ./installer /path/to/install/location
+
+this will install files to /path/to/install/location/bin and /path/to/install/location/share
+
+RUNNING
+  ./rrssdl -c rrssdlrc
+
+this will run rrssdl with the provided rrssdlrc config file (which contains a few feeds and shows as examples)
+
+LICENSE
+
+this software comes with a license, it is the new BSD license.  If you don't know anything about licenses, this is the good one.  It basically clears me of any legal issues if you take my software and make it do something bad on your own, but allows you to do anything you want with it providing my source files are accompanied with the license provided.
+
+ENJOY!

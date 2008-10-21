@@ -1,0 +1,20 @@
+rrssdl (0.2 BETA)
+
+ * Fixed all headers (require statements are in the proper file now)
+ * All operations are thread safe now
+ * Logging now works properly (wasn't getting flushed before)
+ * Fixed installer, now installs all files (future proof)
+ * Logger is now implemented in its own class
+ * Many bug fixes
+
+-- Pat Sissons <patricksissons@gmail.com>  2008-Oct-20
+
+rrssdl (0.1 BETA)
+
+ * Initial release
+ * Basic functionality, but many bugs probably lurking
+ * Performs feed refreshes, regex title matches, regex season/ep matches, and
+   torrent downloads
+
+-- Pat Sissons <patricksissons@gmail.com>  2008-Oct-20
+
