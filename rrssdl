@@ -19,7 +19,7 @@ end
 class RubyRssDownloader
     attr_reader :conf, :shows, :feeds
 
-    $VERSION = 1.0
+    $VERSION = '0.1 BETA'
 
     def initialize(args)
 
@@ -33,14 +33,16 @@ Ruby RSS Feed Downloader (TV Show Edition) v#{$VERSION}
 Usage: rrssdl [options]
 
 Options:
+    -h | --help         show this help text
     -d | --debug        set debug mode (blank is ON, default is OFF)
     -v | --verbose      set verbose mode (blank is ON, default is OFF)
+    -q | --quiet        disable all logging to screen (log file is still used if defined)
     -c | --config path  set config file using path (default is ~/.rrssdlrc)
     -D | --daemon       run as a daemon (SIGINT exist, SIGHUP reloads config)
 EOF
 
                 opts.on('-h', '--help') do 
-                    opts.help
+                    puts opts.banner
                     exit(0)
                 end
                 opts.on('-d', '--debug') do
@@ -50,6 +52,9 @@ EOF
                 opts.on('-v', '--verbose') do
                     params['verbose'] = true
                     log(true, "VERBOSE = 'ON'")
+                end
+                opts.on('-q', '--quiet') do
+                    params['quiet'] = true
                 end
 
                 opts.on('-c', '--config [ARG]') do |c| 
@@ -76,9 +81,9 @@ EOF
     end
 
     def log(level, text)
-        if level
-            puts text
-            if not @conf.nil? and @conf.has_key?('log_file')
+        if level and not @conf.nil?
+            puts text unless @conf.has_key?('quiet')
+            if @conf.has_key?('log_file')
                 begin
                     open(File.expand_path(@conf['log_file']), 'a').write("[#{Time.new.to_s}] #{text}\r\n")
                 rescue => e
@@ -127,7 +132,7 @@ EOF
         @state.read_file
         @state.each_key do |k|
             next unless @shows.has_key?(k)
-            si = state.get_list(k)
+            si = @state.get_list(k)
             @shows[k].load_state(si)
         end
     end
@@ -137,7 +142,7 @@ EOF
         @shows.each_value do |s|
             @state[s.id] = s.get_state
         end
-        state.write_file
+        @state.write_file
     end
 
     def refresh_feeds

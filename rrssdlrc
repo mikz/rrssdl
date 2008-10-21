@@ -5,6 +5,7 @@
 # verbosity of output
 #debug = true
 verbose = true
+#quiet = true
 
 # Daemon mode
 #daemon = true
