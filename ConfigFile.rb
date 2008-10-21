@@ -1,5 +1,3 @@
-#!/usr/bin/ruby
-
 class ConfigFile
     attr_reader :conf
     attr_accessor :file

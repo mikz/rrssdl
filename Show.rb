@@ -1,3 +1,4 @@
+require 'open-uri'
 
 class Show
     attr_accessor :id, :regex, :min_season, :min_episode, :feeds, :cur_season, :cur_episode
@@ -97,7 +98,7 @@ Show    : #{@id}
 Regex   : #{@regex}
 Season  : #{@cur_season} (#{@min_season})
 Episode : #{@cur_episode} (#{@min_episode})
-Feeds   : #{feeds.nil? ? 'ALL' : feeds.each_value.map { |f| f.id }.join(', ')}
+Feeds   : #{@feeds.nil? ? 'ALL' : @feeds.each_value.map { |f| f.id }.join(', ')}
 EOF
     end
 end

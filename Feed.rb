@@ -1,3 +1,7 @@
+require 'timeout'
+require 'open-uri'
+require 'rss/1.0'
+require 'rss/2.0'
 
 class Feed
     attr_accessor :id, :refresh_sec, :uri
