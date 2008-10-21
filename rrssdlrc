@@ -26,7 +26,6 @@ season_ep_regex = [^\w]s(\d+)e(\d+)[^\w];[^\w](\d{1,2})x(\d{1,2})[^\w];[^\w](\d{
 
 # which show id's are enabled.  semi-colon separated
 enabled_show_ids = show_las_vegas;show_the_tudors;show_whistler;show_weeds;show_nip_tuck;show_extras;show_skins;show_underbelly;show_mad_men;show_fringe
-#enabled_show_ids = show_test
 
 # The following are simply show_id = regex;min_season;min_episode;[<feed_ids>,...]
 show_american_dad = ^american[^\w]dad[^\w];0;0
@@ -51,11 +50,9 @@ show_skins = ^skins[^\w];0;0
 show_underbelly = ^underbelly[^\w];0;0
 show_mad_men = ^Mad[^\w]Men[^\w];0;0
 show_fringe = ^fringe[^\w];1;6
-show_test = ^Sanctuary[^\w];0;0
 
 # which feed id's are enabled.  semi-colon separated
 enabled_feed_ids = feed_tvrss_unique;feed_btchat
-#enabled_feed_ids = feed_test
 
 # The following are simply feed_id = feed_url;refresh_mins
 feed_tvrss_combined = http://tvrss.net/feed/combined/;15
@@ -63,7 +60,6 @@ feed_tvrss_unique = http://tvrss.net/feed/unique/;15
 feed_tvrss_eztv = http://tvrss.net/feed/eztv/;15
 feed_tvrss_vtv = http://tvrss.net/feed/vtv/;15
 feed_btchat = http://rss.bt-chat.com/?cat=9;15
-feed_test = http://localhost/test.xml;15
 
 # how long to wait before aborting a feed refresh
 # default value is whatever the refresh time is set for the particular feed
