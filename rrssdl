@@ -82,8 +82,8 @@ EOF
         init_settings
     end
 
-    def log(level, text)
-        @logger.log(level, text)
+    def log(level, text, ts=true)
+        @logger.log(level, text, ts)
     end
 
     def debug
@@ -104,7 +104,7 @@ EOF
             fi = @conf.get_list(f)
             next if fi.length != 2
             @feeds[f] = Feed.new(self, f, fi[0], fi[1])
-            log(debug, @feeds[f].to_s)
+            log(debug, @feeds[f].to_s.strip, false)
         end
 
         log(verbose, 'Building Show Collection...')
@@ -112,7 +112,7 @@ EOF
             si = @conf.get_list(s)
             next if si.length < 3
             @shows[s] = Show.new(self, s, si.shift, si.shift, si.shift, si)
-            log(debug, @shows[s].to_s)
+            log(debug, @shows[s].to_s.strip, false)
         end
 
         load_state

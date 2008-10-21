@@ -103,11 +103,15 @@ class Show
 
     def to_s
 <<EOF
+------------------------
+Show
+------------------------
 Show    : #{@id}
 Regex   : #{@regex}
 Season  : #{@cur_season} (#{@min_season})
 Episode : #{@cur_episode} (#{@min_episode})
 Feeds   : #{@feeds.nil? ? 'ALL' : @feeds.each_value.map { |f| f.id }.join(', ')}
+========================
 EOF
     end
 end

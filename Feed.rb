@@ -66,7 +66,7 @@ class Feed
         log(verbose, "Found #{feed.items.length} Items, Processing...")
         feed.items.each do |i|
             str = <<EOF
-
+------------------------
 RSS Feed Item
 ------------------------
 [#{i.date}] #{i.title}
@@ -89,9 +89,13 @@ EOF
 
     def to_s
 <<EOF
+------------------------
+Feed
+------------------------
 Feed    : #{id}
 Refresh : #{refresh_sec} (Seconds)
 URI     : #{uri}
+========================
 EOF
     end
 end
