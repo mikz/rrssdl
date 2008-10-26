@@ -35,8 +35,6 @@ require 'thread'
 class Feed
     attr_accessor :id, :refresh_sec, :uri
 
-    $mut = Mutex.new
-
     def initialize(main, id, uri, refresh_min)
         @main = main
         @id = id
@@ -49,8 +47,9 @@ class Feed
             timeout = conf['feed_timeout_seconds'].to_i
             timeout = @refresh_sec if timeout == 0
             loop do
+                log(debug, "Sleeping for #{@refresh_sec} Seconds")
                 sleep(@refresh_sec)
-                Timeout::timeout(timeout) { $mut.syncronize { refresh_feed } }
+                Timeout::timeout(timeout) { sync_refresh_feed }
             end
         end
     end
@@ -67,8 +66,8 @@ class Feed
         @main.verbose
     end
 
-    def log(level, text)
-        @main.log(level, text)
+    def log(level, text, ts=true)
+        @main.log(level, text, ts)
     end
 
     def read_feed
@@ -83,6 +82,11 @@ class Feed
             log(true, "RSS Feed Error: #{e}")
             nil
         end
+    end
+
+    def sync_refresh_feed
+        log(debug, "Performing Syncronized Feed Refresh")
+        @main.mut.synchronize { refresh_feed }
     end
 
     def refresh_feed
@@ -102,7 +106,7 @@ RSS Feed Item
 #{i.description}
 ========================
 EOF
-            log(debug, str)
+            log(debug, str, false)
             @main.shows.each_value do |s|
                 if s.belongs_to?(self)
                     log(debug, "#{s.id} Is Paired With #{@id}")

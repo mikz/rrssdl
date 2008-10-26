@@ -1,3 +1,5 @@
+#!/usr/bin/ruby
+
 =begin
 Copyright (c) 2008, Pat Sissons
 All rights reserved.
@@ -26,9 +28,8 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 =end
 
-#!/usr/bin/ruby
-
 require 'optparse'
+require 'thread'
 
 require 'ConfigFile.rb'
 require 'Show.rb'
@@ -42,12 +43,13 @@ class Time
 end
 
 class RubyRssDownloader
-    attr_reader :conf, :shows, :feeds
+    attr_reader :conf, :shows, :feeds, :mut
 
-    $VERSION = '0.1 BETA'
+    $VERSION = '0.2 BETA'
 
     def initialize(args)
         begin
+            @mut = Mutex.new
             params = {'file' => '~/.rrssdlrc'}
             @logger = Logger.new(self)
 
@@ -169,7 +171,7 @@ EOF
     def refresh_feeds
         log(verbose, 'Refreshing Feeds...')
         @feeds.each_value do |f|
-            f.refresh_feed
+            f.sync_refresh_feed
         end
         log(verbose, 'Feeds Refreshed')
     end

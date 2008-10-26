@@ -53,8 +53,8 @@ class Show
         @main.verbose
     end
 
-    def log(level, text)
-        @main.log(level, text)
+    def log(level, text, ts=true)
+        @main.log(level, text, ts)
     end
 
     def belongs_to?(feed)

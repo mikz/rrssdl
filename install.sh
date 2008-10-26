@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Copyright (c) 2008, Pat Sissons
 # All rights reserved.
 # 
@@ -24,8 +26,6 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-#!/bin/bash
-
 if [ -z $1 ]; then
     echo "Usage: $0 <install path>"
     exit 0
@@ -40,7 +40,7 @@ cat > $1/bin/rrssdl <<EOF
 #!/bin/bash
 
 pushd $1/share/rrssdl
-./rrssdl
+./rrssdl \$@
 popd
 EOF
 
