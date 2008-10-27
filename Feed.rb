@@ -33,13 +33,20 @@ require 'rss/2.0'
 require 'thread'
 
 class Feed
-    attr_accessor :id, :refresh_sec, :uri
+    attr_accessor :id, :refresh_sec, :uri, :postdlcmd
 
-    def initialize(main, id, uri, refresh_min)
+    def initialize(main, id, opts=nil) #uri, refresh_min=30,postdlcmd=nil)
         @main = main
         @id = id
-        @refresh_sec = refresh_min.to_i * 60
-        @uri = uri
+        if opts.nil?
+            raise 'Catastrophic Failure!'
+        else
+            @uri = opts.length >= 1 ? opts[0] : nil
+            @refresh_sec = opts.length >= 2 ? opts[1].to_i * 60 : 30 * 60
+            @postdlcmd = opts.length >= 3 ? opts[2] : nil
+        end
+
+        raise "Missing required URI for feed #{id}" if @uri.nil?
 
         log(verbose, "Setting Up Feed Timer for #{id} (#{@refresh_sec} Seconds)")
         #setup timer event
@@ -52,6 +59,11 @@ class Feed
                 Timeout::timeout(timeout) { sync_refresh_feed }
             end
         end
+    end
+
+    def cmd
+        shellcmd = @postdlcmd.nil? ? conf['post_dl_cmd'] : @postdlcmd
+        shellcmd == '' ? nil : shellcmd
     end
     
     def conf
@@ -110,7 +122,18 @@ EOF
             @main.shows.each_value do |s|
                 if s.belongs_to?(self)
                     log(debug, "#{s.id} Is Paired With #{@id}")
-                    s.match(i)
+                    dlpath = s.match(i)
+                    unless dlpath.nil?
+                        shell_cmd = cmd
+                        unless shell_cmd.nil?
+                            torfile = File.basename(dlpath)
+                            shell_cmd.gsub!('%T', dlpath).gsub!('%t', torfile)
+                            log(debug, "Executing `#{shell_cmd}`...")
+                            result = nil
+                            Timeout::timeout(60) { result = `#{shell_cmd}` }
+                            log(debug, "Returned [#{result}]") unless result.nil?
+                        end
+                    end
                 else
                     log(debug, "#{s.id} Isn't Paired With #{@id}")
                 end

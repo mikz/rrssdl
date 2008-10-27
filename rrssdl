@@ -132,8 +132,8 @@ EOF
         log(verbose, 'Building Feed Collection...')
         @conf.get_list('enabled_feed_ids').each do |f|
             fi = @conf.get_list(f)
-            next if fi.length != 2
-            @feeds[f] = Feed.new(self, f, fi[0], fi[1])
+            next if fi.length < 1
+            @feeds[f] = Feed.new(self, f, fi)
             log(debug, @feeds[f].to_s.strip, false)
         end
 
