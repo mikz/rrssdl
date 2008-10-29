@@ -46,10 +46,6 @@ class Show
         end
     end
 
-    def rxSeasonEp
-        @main.rxSeasonEp
-    end
-
     def conf
         @main.conf
     end
@@ -71,11 +67,15 @@ class Show
         @feeds.nil? or @feeds.include?(feed)
     end
 
+    def rxmatch(rx, string)
+        log(debug, "Matching '#{string}' with regex '#{rx}'")
+        Regexp.new(rx, Regexp::IGNORECASE).match(string)
+    end
+
     def new_show?(title)
         log(debug, "Checking If '#{title}' Is A New Show")
-        rxSeasonEp.each do |rx|
-            log(debug, "Matching '#{title}' with regex '#{rx}'")
-            m = Regexp.new(rx, Regexp::IGNORECASE).match(title)
+        @main.rxSeasonEp.each do |rx|
+            m = rxmatch(rx, title)
             if m.nil?
                 log(debug, "#{id} didn't match #{title}")
             else
@@ -90,6 +90,20 @@ class Show
             end
         end
         nil
+    end
+
+    def reject(title)
+        log(debug, "Checking if '#{title}' should be rejected")
+        @main.rxReject.each do |rx|
+            log(debug, "Matching '#{title}' with regex '#{rx}'")
+            m = rxmatch(rx, title)
+            unless m.nil?
+                log(debug, "'#{title}' is rejected")
+                return true
+            end
+        end
+
+        false
     end
 
     def match(i)
@@ -108,6 +122,9 @@ class Show
             elsif ep_info.nil?
                 log(verbose, "WARNING: Couldn't Determin Season and Episode Info For '#{i.title}'")
                 dlpath = File.join(File.expand_path(conf['download_path_review']), "REVIEW-#{i.title.gsub(/[^\w]/, '_').gsub(/_+/, '_')}.torrent")
+            elsif reject(i.title)
+                log(verbose, "'#{i.title}' Was Rejected")
+                dlpath = File.join(File.expand_path(conf['download_path_review']), "REVIEW-#{i.title.gsub(/[^\w]/, '_').gsub(/_+/, '_')}.torrent")
             else
                 @cur_season = ep_info[0].to_i
                 @cur_episode = ep_info[1].to_i
@@ -121,7 +138,10 @@ class Show
     def download(uri, dlpath)
         begin
             log(verbose, "Downloading #{uri} to #{dlpath}")
-            open(dlpath, 'w').write(open(uri).read)
+            File.open(dlpath, 'w') do |f| 
+                f.write(open(uri).read)
+                f.close 
+            end
             dlpath
         rescue => e
             log(true, "Download Error: #{e}")

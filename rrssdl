@@ -43,7 +43,7 @@ class Time
 end
 
 class RubyRssDownloader
-    attr_reader :conf, :shows, :feeds, :mut, :rxSeasonEp
+    attr_reader :conf, :shows, :feeds, :mut, :rxSeasonEp, :rxReject
 
     $VERSION = '0.2 BETA'
 
@@ -146,6 +146,7 @@ EOF
         end
         
         @rxSeasonEp = conf.get_list('season_ep_regex')
+        @rxReject = conf.get_list('reject_regex')
 
         load_state
     end

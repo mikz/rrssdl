@@ -21,8 +21,11 @@ download_path = /media/storage0/bt/torrents
 # season or episode info for
 download_path_review = /media/storage0/bt/torrents/review
 
-# semi-colon seperated list of Season and Episode Regex strings (case insensitive)
+# semi-colon separated list of Season and Episode Regex strings (case insensitive)
 season_ep_regex = [^\w]s(\d+)e(\d+)[^\w];[^\w](\d{1,2})x(\d{1,2})[^\w];[^\w](\d{1,2})(\d{2,2})[^\w]
+
+# semi-colon separated list of regex strings that are used to reject a torrent (case insensitive)
+reject_regex = 720p,1080p
 
 # which show id's are enabled.  semi-colon separated
 #enabled_show_ids = show_las_vegas;show_the_tudors;show_whistler;show_weeds;show_nip_tuck;show_extras;show_skins;show_underbelly;show_mad_men;show_fringe
