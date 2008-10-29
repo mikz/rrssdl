@@ -35,15 +35,15 @@ require 'thread'
 class Feed
     attr_accessor :id, :refresh_sec, :uri, :postdlcmd
 
-    def initialize(main, id, opts=nil) #uri, refresh_min=30,postdlcmd=nil)
+    def initialize(main, id, uri, opts=nil) #opts = refresh_min=30,postdlcmd=nil
         @main = main
         @id = id
+        @uri = uri
         if opts.nil?
             raise 'Catastrophic Failure!'
         else
-            @uri = opts.length >= 1 ? opts[0] : nil
-            @refresh_sec = opts.length >= 2 ? opts[1].to_i * 60 : 30 * 60
-            @postdlcmd = opts.length >= 3 ? opts[2] : nil
+            @refresh_sec = opts.length >= 1 ? opts[0].to_i * 60 : 30 * 60
+            @postdlcmd = opts.length >= 2 ? opts[1] : nil
         end
 
         raise "Missing required URI for feed #{id}" if @uri.nil?
@@ -61,9 +61,13 @@ class Feed
         end
     end
 
-    def cmd
-        shellcmd = @postdlcmd.nil? ? conf['post_dl_cmd'] : @postdlcmd
-        shellcmd == '' ? nil : shellcmd
+    def cmd(show)
+        if show.postdlcmd.nil?
+            shellcmd = @postdlcmd.nil? ? conf['post_dl_cmd'] : @postdlcmd
+            shellcmd == '' ? nil : shellcmd
+        else
+            show.postdlcmd
+        end
     end
     
     def conf
@@ -124,7 +128,7 @@ EOF
                     log(debug, "#{s.id} Is Paired With #{@id}")
                     dlpath = s.match(i)
                     unless dlpath.nil?
-                        shell_cmd = cmd
+                        shell_cmd = cmd(s)
                         unless shell_cmd.nil?
                             torfile = File.basename(dlpath)
                             shell_cmd.gsub!('%T', dlpath).gsub!('%t', torfile)

@@ -29,16 +29,25 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 require 'open-uri'
 
 class Show
-    attr_accessor :id, :regex, :min_season, :min_episode, :feeds, :cur_season, :cur_episode
+    attr_accessor :id, :regex, :min_season, :min_episode, :postdlcmd, :feeds, :cur_season, :cur_episode
 
-    def initialize(main, id, regex, min_season, min_episode, feeds)
+    def initialize(main, id, regex, min_season, min_episode, opts)
         @main = main
         @id = id
         @regex = regex
         @min_season = @cur_season = min_season.to_i
         @min_episode = @cur_episode = min_episode.to_i
-        @feeds = feeds.empty? ? nil : feeds.map { |f| main.feeds[f] }.compact
-        @rxSeasonEp = conf.get_list('season_ep_regex')
+        if opts.nil?
+            raise 'Catastrophic Failure!'
+        else
+            @postdlcmd = opts.length >= 1 ? opts.shift : nil
+            @postdlcmd = nil if @postdlcmd.empty?
+            @feeds = opts.empty? ? nil : opts.map { |f| main.feeds[f] }.compact
+        end
+    end
+
+    def rxSeasonEp
+        @main.rxSeasonEp
     end
 
     def conf
@@ -64,7 +73,7 @@ class Show
 
     def new_show?(title)
         log(debug, "Checking If '#{title}' Is A New Show")
-        @rxSeasonEp.each do |rx|
+        rxSeasonEp.each do |rx|
             log(debug, "Matching '#{title}' with regex '#{rx}'")
             m = Regexp.new(rx, Regexp::IGNORECASE).match(title)
             if m.nil?

@@ -43,7 +43,7 @@ class Time
 end
 
 class RubyRssDownloader
-    attr_reader :conf, :shows, :feeds, :mut
+    attr_reader :conf, :shows, :feeds, :mut, :rxSeasonEp
 
     $VERSION = '0.2 BETA'
 
@@ -133,7 +133,7 @@ EOF
         @conf.get_list('enabled_feed_ids').each do |f|
             fi = @conf.get_list(f)
             next if fi.length < 1
-            @feeds[f] = Feed.new(self, f, fi)
+            @feeds[f] = Feed.new(self, f, fi.shift, fi)
             log(debug, @feeds[f].to_s.strip, false)
         end
 
@@ -144,6 +144,8 @@ EOF
             @shows[s] = Show.new(self, s, si.shift, si.shift, si.shift, si)
             log(debug, @shows[s].to_s.strip, false)
         end
+        
+        @rxSeasonEp = conf.get_list('season_ep_regex')
 
         load_state
     end
