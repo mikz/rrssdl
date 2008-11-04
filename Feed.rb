@@ -50,13 +50,17 @@ class Feed
 
         log(verbose, "Setting Up Feed Timer for #{id} (#{@refresh_sec} Seconds)")
         #setup timer event
+        @timeout = conf['feed_timeout_seconds'].to_i
+        timeout = @refresh_sec if timeout == 0
         Thread.new do
-            timeout = conf['feed_timeout_seconds'].to_i
-            timeout = @refresh_sec if timeout == 0
             loop do
-                log(debug, "Sleeping for #{@refresh_sec} Seconds")
-                sleep(@refresh_sec)
-                Timeout::timeout(timeout) { sync_refresh_feed }
+                begin
+                    log(debug, "Sleeping for #{@refresh_sec} Seconds")
+                    sleep(@refresh_sec)
+                    sync_refresh_feed
+                rescue => e
+                    log(true, "Feed Error: #{e}")
+                end
             end
         end
     end
@@ -102,7 +106,7 @@ class Feed
 
     def sync_refresh_feed
         log(debug, "Performing Syncronized Feed Refresh")
-        @main.mut.synchronize { refresh_feed }
+        @main.mut.synchronize { Timeout::timeout(@timeout) { refresh_feed } }
     end
 
     def refresh_feed

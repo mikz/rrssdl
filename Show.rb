@@ -27,6 +27,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 =end
 
 require 'open-uri'
+require 'timeout'
 
 class Show
     attr_accessor :id, :regex, :min_season, :min_episode, :postdlcmd, :feeds, :cur_season, :cur_episode
@@ -40,7 +41,7 @@ class Show
         if opts.nil?
             raise 'Catastrophic Failure!'
         else
-            @postdlcmd = opts.length >= 1 ? opts.shift : nil
+            @postdlcmd = opts.length >= 1 ? opts.shift : []
             @postdlcmd = nil if @postdlcmd.empty?
             @feeds = opts.empty? ? nil : opts.map { |f| main.feeds[f] }.compact
         end
@@ -131,7 +132,7 @@ class Show
                 dlpath = File.join(File.expand_path(conf['download_path']), "#{i.title.gsub(/[^\w]/, '_').gsub(/_+/, '_')}.torrent")
                 log(verbose, "Downloading Show '#{i.title}'")
             end
-            download(i.link, dlpath)
+            Timeout::timeout(@main.torTimeout) { download(i.link, dlpath) }
         end
     end
 

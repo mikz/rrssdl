@@ -40,19 +40,27 @@ class Logger
 
     def log(level, text, ts=true)
         @mut.synchronize do
-            if level and not conf.nil?
-                puts "#{ts ? "[#{Time.new.to_s}] " : ''}#{text}" unless conf.has_key?('quiet')
-                if conf.has_key?('log_file')
-                    begin
-                        File.open(File.expand_path(conf['log_file']), 'a') do |f|
-                            f.write("[#{Time.new.to_s}] ") if ts
-                            f.write("#{text}\n")
-                            f.close
-                        end
-                    rescue => e
-                        warn "Log File Error: #{e}"
-                    end
+            log_screen(level, text, ts)
+            log_file(level, text, ts)
+        end
+    end
+
+    def log_screen(level, text, ts=true)
+        if level and not conf.nil?
+            puts "#{ts ? "[#{Time.new.to_s}] " : ''}#{text}" unless conf.has_key?('quiet')
+        end
+    end
+
+    def log_file(level, text, ts=true)
+        if not conf.nil? and (level or conf.has_key?('log_file_debug'))
+            begin
+                File.open(File.expand_path(conf['log_file']), 'a') do |f|
+                    f.write("[#{Time.new.to_s}] ") if ts
+                    f.write("#{text}\n")
+                    f.close
                 end
+            rescue => e
+                warn "Log File Error: #{e}"
             end
         end
     end

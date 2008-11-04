@@ -43,7 +43,7 @@ class Time
 end
 
 class RubyRssDownloader
-    attr_reader :conf, :shows, :feeds, :mut, :rxSeasonEp, :rxReject
+    attr_reader :conf, :shows, :feeds, :mut, :rxSeasonEp, :rxReject, :torTimeout
 
     $VERSION = '0.2 BETA'
 
@@ -147,6 +147,7 @@ EOF
         
         @rxSeasonEp = conf.get_list('season_ep_regex')
         @rxReject = conf.get_list('reject_regex')
+        @torTimeout = conf.has_key?('torrent_dl_timeout_seconds') ? conf['torrent_dl_timeout_seconds'] : 60
 
         load_state
     end

@@ -14,6 +14,8 @@ verbose = true
 state_file = ~/.rrssdlstate
 # log output
 log_file = /tmp/rrssdl.log
+# dump debug data to log file (but not to screen)
+log_file_debug = true
 
 # where to put downloaded torrent files
 download_path = /media/storage0/bt/torrents
@@ -71,6 +73,10 @@ feed_test = http://localhost/test.xml;1;echo "[feed_test] Downloaded %T (%t)"
 # how long to wait before aborting a feed refresh
 # default value is whatever the refresh time is set for the particular feed
 feed_timeout_seconds = 60
+
+# how long to wait before aborting a torrent download
+# default value is 60 seconds
+torrent_dl_timeout_seconds = 60
 
 # shell command to run after every download (unless specified for feed explicitly)
 # %t = torrent file, %T = full torrent path
