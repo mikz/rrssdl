@@ -117,22 +117,27 @@ class Show
             log(debug, "#{@id} matches '#{i.title}'")
             ep_info = new_show?(i.title)
             dlpath = nil
+            review = false
             if ep_info == false
                 log(debug, "#{i.title} is old, skipping")
                 return nil
             elsif ep_info.nil?
                 log(verbose, "WARNING: Couldn't Determin Season and Episode Info For '#{i.title}'")
                 dlpath = File.join(File.expand_path(conf['download_path_review']), "REVIEW-#{i.title.gsub(/[^\w]/, '_').gsub(/_+/, '_')}.torrent")
+                review = true
             elsif reject(i.title)
                 log(verbose, "'#{i.title}' Was Rejected")
                 dlpath = File.join(File.expand_path(conf['download_path_review']), "REVIEW-#{i.title.gsub(/[^\w]/, '_').gsub(/_+/, '_')}.torrent")
+                review = true
             else
                 @cur_season = ep_info[0].to_i
                 @cur_episode = ep_info[1].to_i
                 dlpath = File.join(File.expand_path(conf['download_path']), "#{i.title.gsub(/[^\w]/, '_').gsub(/_+/, '_')}.torrent")
                 log(verbose, "Downloading Show '#{i.title}'")
             end
-            Timeout::timeout(@main.torTimeout) { download(i.link, dlpath) }
+            ret = nil
+            Timeout::timeout(@main.torTimeout) { ret = download(i.link, dlpath) }
+            review ? nil : ret
         end
     end
 

@@ -133,9 +133,9 @@ EOF
                     dlpath = s.match(i)
                     unless dlpath.nil?
                         shell_cmd = cmd(s)
-                        unless shell_cmd.nil?
+                        unless shell_cmd.nil? or shell_cmd == ''
                             torfile = File.basename(dlpath)
-                            shell_cmd.gsub!('%T', dlpath).gsub!('%t', torfile)
+                            shell_cmd = shell_cmd.gsub('%T', dlpath).gsub('%t', torfile)
                             log(debug, "Executing `#{shell_cmd}`...")
                             result = nil
                             Timeout::timeout(60) { result = `#{shell_cmd}` }
