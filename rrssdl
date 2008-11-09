@@ -147,7 +147,14 @@ EOF
         
         @rxSeasonEp = conf.get_list('season_ep_regex')
         @rxReject = conf.get_list('reject_regex')
-        @torTimeout = conf.has_key?('torrent_dl_timeout_seconds') ? conf['torrent_dl_timeout_seconds'] : 60
+        @torTimeout = conf.has_key?('torrent_dl_timeout_seconds') ? conf['torrent_dl_timeout_seconds'].to_i : 60
+
+        begin
+            Dir.mkdir(conf['download_path']) unless File.directory?(conf['download_path'])
+            Dir.mkdir(conf['download_path_review']) unless File.directory?(conf['download_path_review'])
+        rescue => e
+            log(true, "Directory Creation Error: #{e}")
+        end
 
         load_state
     end

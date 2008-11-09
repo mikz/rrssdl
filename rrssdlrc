@@ -18,16 +18,16 @@ log_file = /tmp/rrssdl.log
 log_file_debug = true
 
 # where to put downloaded torrent files
-download_path = /media/storage0/bt/torrents
+download_path = /tmp
 # where to put downloaded files that we couldn't determine the
 # season or episode info for
-download_path_review = /media/storage0/bt/torrents/review
+download_path_review = /tmp/review
 
 # semi-colon separated list of Season and Episode Regex strings (case insensitive)
 season_ep_regex = [^\w]s(\d+)e(\d+)[^\w];[^\w](\d{1,2})x(\d{1,2})[^\w];[^\w](\d{1,2})(\d{2,2})[^\w]
 
 # semi-colon separated list of regex strings that are used to reject a torrent (case insensitive)
-reject_regex = 720p,1080p
+reject_regex = 720p;1080p
 
 # which show id's are enabled.  semi-colon separated
 #enabled_show_ids = show_las_vegas;show_the_tudors;show_whistler;show_weeds;show_nip_tuck;show_extras;show_skins;show_underbelly;show_mad_men;show_fringe
@@ -56,7 +56,7 @@ show_skins = ^skins[^\w];0;0
 show_underbelly = ^underbelly[^\w];0;0
 show_mad_men = ^Mad[^\w]Men[^\w];0;0
 show_fringe = ^fringe[^\w];1;6
-show_test = ^la[^\w]ink[^\w];0;0;echo "[show_test] Downloaded %T (%t)"
+show_test = ^Numb3rs[^\w];0;0;echo "[show_test] Downloaded %T (%t)"
 
 # which feed id's are enabled.  semi-colon separated
 enabled_feed_ids = feed_test

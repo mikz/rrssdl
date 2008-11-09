@@ -96,7 +96,6 @@ class Show
     def reject(title)
         log(debug, "Checking if '#{title}' should be rejected")
         @main.rxReject.each do |rx|
-            log(debug, "Matching '#{title}' with regex '#{rx}'")
             m = rxmatch(rx, title)
             unless m.nil?
                 log(debug, "'#{title}' is rejected")
