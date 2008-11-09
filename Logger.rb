@@ -60,7 +60,7 @@ class Logger
                     f.close
                 end
             rescue => e
-                warn "Log File Error: #{e}"
+                warn "Log File Error: #{e} -- #{text}"
             end
         end
     end
