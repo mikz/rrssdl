@@ -210,8 +210,11 @@ EOF
         if @conf.has_key?('daemon')
             log(verbose, 'Daemonizing...')
             pid = fork do
-                log(verbose, "Daemon PID = #{pid}")
                 main_loop
+            end
+            if (pid > 0)
+                log(verbose, "Daemon PID = #{pid}")
+                Process.detach(pid)
             end
         else
             main_loop

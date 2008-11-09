@@ -54,10 +54,15 @@ class Logger
     def log_file(level, text, ts=true)
         if not conf.nil? and (level or conf.has_key?('log_file_debug'))
             begin
-                File.open(File.expand_path(conf['log_file']), 'a') do |f|
-                    f.write("[#{Time.new.to_s}] ") if ts
-                    f.write("#{text}\n")
-                    f.close
+                File.new(conf['log_file'], 'w') unless File.exists?(conf['log_file'])
+                if File.writable?(conf['log_file'])
+                    File.open(File.expand_path(conf['log_file']), 'a') do |f|
+                        f.write("[#{Time.new.to_s}] ") if ts
+                        f.write("#{text}\n")
+                        f.close
+                    end
+                else
+                    throw "'#{conf['log_file']}' is not writable"
                 end
             rescue => e
                 warn "Log File Error: #{e} -- #{text}"
