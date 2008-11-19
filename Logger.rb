@@ -65,7 +65,7 @@ class Logger
                     throw "'#{conf['log_file']}' is not writable"
                 end
             rescue => e
-                warn "Log File Error: #{e} -- #{text}"
+                warn "Log File Error: #{e} (#{conf['log_file']}) -- #{text}"
             end
         end
     end
