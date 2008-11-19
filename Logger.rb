@@ -52,7 +52,7 @@ class Logger
     end
 
     def log_file(level, text, ts=true)
-        if not conf.nil? and (level or conf.has_key?('log_file_debug'))
+        if not conf.nil? and conf.has_key?('log_file') and (level or conf.has_key?('log_file_debug'))
             begin
                 File.new(conf['log_file'], 'w') unless File.exists?(conf['log_file'])
                 if File.writable?(conf['log_file'])

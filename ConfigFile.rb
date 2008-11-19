@@ -42,12 +42,14 @@ class ConfigFile
     def init_params(params)
         @file = params['file']
 
+        log(debug, "Applying: #{params.each_key.map { |k| "#{k} => #{params[k]}" }.join(', ')}")
         params.each_pair do |k,v|
             self[k] = v
         end
 
         read_file
 
+        log(debug, "Re-applying: #{params.each_key.map { |k| "#{k} => #{params[k]}" }.join(', ')}")
         params.each_pair do |k,v|
             self[k] = v
         end
