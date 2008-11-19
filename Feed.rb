@@ -105,8 +105,12 @@ class Feed
     end
 
     def sync_refresh_feed
-        log(debug, "Performing Syncronized Feed Refresh")
-        @main.mut.synchronize { Timeout::timeout(@timeout) { refresh_feed } }
+        begin
+            log(debug, "Performing Syncronized Feed Refresh")
+            @main.mut.synchronize { Timeout::timeout(@timeout) { refresh_feed } }
+        rescue => e
+            log(true, "RSS Feed Refresh Error: #{e}")
+        end
     end
 
     def refresh_feed

@@ -142,6 +142,11 @@ class Show
 
     def download(uri, dlpath)
         begin
+            unless File.size?(dlpath).nil?
+                log(verbose, "'#{dlpath}' already exists, not downloading")
+                return nil
+            end
+
             log(verbose, "Downloading #{uri} to #{dlpath}")
             File.open(dlpath, 'w') do |f| 
                 f.write(open(uri).read)
