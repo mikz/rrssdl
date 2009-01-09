@@ -132,7 +132,10 @@ EOF
         log(verbose, 'Building Feed Collection...')
         @conf.get_list('enabled_feed_ids').each do |f|
             fi = @conf.get_list(f)
-            next if fi.length < 1
+            if fi.length < 1
+                log(true, "Poorly formed feed line [#{f}]")
+                next
+            end
             @feeds[f] = Feed.new(self, f, fi.shift, fi)
             log(debug, @feeds[f].to_s.strip, false)
         end
@@ -140,7 +143,10 @@ EOF
         log(verbose, 'Building Show Collection...')
         @conf.get_list('enabled_show_ids').each do |s|
             si = @conf.get_list(s)
-            next if si.length < 3
+            if si.length < 3
+                log(true, "Poorly formed show line [#{s}]")
+                next
+            end
             @shows[s] = Show.new(self, s, si.shift, si.shift, si.shift, si)
             log(debug, @shows[s].to_s.strip, false)
         end
@@ -199,6 +205,9 @@ EOF
         Kernel.trap('HUP') do
             log(verbose, 'Reloading Config...')
             # kill all feed timers
+            @feeds.each_value do |f|
+                f.enabled = false
+            end
             @conf.read_file
             init_settings
             refresh_feeds

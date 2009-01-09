@@ -3,9 +3,9 @@
 # its absence defines a false value
 
 # verbosity of output
-#debug = true
+quiet = true
+debug = true
 verbose = true
-#quiet = true
 
 # Daemon mode
 #daemon = true
@@ -31,7 +31,7 @@ reject_regex = 720p;1080p
 
 # which show id's are enabled.  semi-colon separated
 #enabled_show_ids = show_las_vegas;show_the_tudors;show_whistler;show_weeds;show_nip_tuck;show_extras;show_skins;show_underbelly;show_mad_men;show_fringe
-enabled_show_ids = show_test
+enabled_show_ids = show_mad_men;show_underbelly;show_skins;show_nip_tuck;show_weeds;show_the_tudors
 
 # The following are simply show_id = regex;min_season;min_episode[;shell_cmd;feed_id1,feed_id2,...]
 show_american_dad = ^american[^\w]dad[^\w];0;0
@@ -59,7 +59,7 @@ show_fringe = ^fringe[^\w];1;6
 show_test = ^Numb3rs[^\w];0;0;echo "[show_test] Downloaded %T (%t)"
 
 # which feed id's are enabled.  semi-colon separated
-enabled_feed_ids = feed_test
+enabled_feed_ids = feed_tvrss_unique;feed_btchat
 #enabled_feed_ids = feed_tvrss_unique;feed_btchat
 
 # The following are simply feed_id = feed_url;[refresh_mins;post_dl_cmd]

@@ -167,7 +167,7 @@ class Show
     end
 
     def get_state
-        log(debug, "Saving State For #{@id}: #{@cur_season};#{@cur_episode}")
+        log(debug, "State For #{@id}: #{@cur_season};#{@cur_episode}")
         "#{@cur_season};#{@cur_episode}"
     end
 

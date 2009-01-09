@@ -33,12 +33,13 @@ require 'rss/2.0'
 require 'thread'
 
 class Feed
-    attr_accessor :id, :refresh_sec, :uri, :postdlcmd
+    attr_accessor :id, :refresh_sec, :uri, :postdlcmd, :enabled
 
     def initialize(main, id, uri, opts=nil) #opts = refresh_min=30,postdlcmd=nil
         @main = main
         @id = id
         @uri = uri
+        @enabled = true
         if opts.nil?
             raise 'Catastrophic Failure!'
         else
@@ -53,7 +54,7 @@ class Feed
         @timeout = conf['feed_timeout_seconds'].to_i
         timeout = @refresh_sec if timeout == 0
         Thread.new do
-            loop do
+            while @enabled do
                 begin
                     log(debug, "Sleeping for #{@refresh_sec} Seconds")
                     sleep(@refresh_sec)
