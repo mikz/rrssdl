@@ -4,6 +4,7 @@
 
 # verbosity of output
 quiet = true
+trace = true
 debug = true
 verbose = true
 
@@ -14,8 +15,6 @@ verbose = true
 state_file = ~/.rrssdlstate
 # log output
 log_file = /tmp/rrssdl.log
-# dump debug data to log file (but not to screen)
-log_file_debug = true
 
 # where to put downloaded torrent files
 download_path = /tmp
@@ -60,7 +59,6 @@ show_test = ^Numb3rs[^\w];0;0;echo "[show_test] Downloaded %T (%t)"
 
 # which feed id's are enabled.  semi-colon separated
 enabled_feed_ids = feed_tvrss_unique;feed_btchat
-#enabled_feed_ids = feed_tvrss_unique;feed_btchat
 
 # The following are simply feed_id = feed_url;[refresh_mins;post_dl_cmd]
 feed_tvrss_combined = http://tvrss.net/feed/combined/;15
