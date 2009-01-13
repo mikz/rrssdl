@@ -28,6 +28,13 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 require 'thread'
 
+module Kernel
+    private
+    def last_method_name
+        caller[1] =~ /`([^']*)'/ and $1
+    end
+end
+
 class Logger
     def initialize(main)
         @main = main
@@ -38,21 +45,35 @@ class Logger
         @main.conf
     end
 
+    def trace_enter(ts=true)
+        if conf.has_key?('trace')
+            method = last_method_name
+            log(true, "ENTERING METHOD: #{method}", ts)
+        end
+    end
+
+    def trace_leave(ts=true)
+        if conf.has_key?('trace')
+            method = last_method_name
+            log(true, "LEAVING METHOD: #{method}", ts)
+        end
+    end
+
     def log(level, text, ts=true)
         @mut.synchronize do
-            log_screen(level, text, ts)
+            log_screen(level, text, ts) unless conf.nil? or conf.has_key?('quiet')
             log_file(level, text, ts)
         end
     end
 
     def log_screen(level, text, ts=true)
         if level and not conf.nil?
-            puts "#{ts ? "[#{Time.new.to_s}] " : ''}#{text}" unless conf.has_key?('quiet')
+            puts "#{ts ? "[#{Time.new.to_s}] " : ''}#{text}"
         end
     end
 
     def log_file(level, text, ts=true)
-        if not conf.nil? and conf.has_key?('log_file') and (level or conf.has_key?('log_file_debug'))
+        if not conf.nil? and conf.has_key?('log_file') and level
             begin
                 File.new(conf['log_file'], 'w') unless File.exists?(conf['log_file'])
                 if File.writable?(conf['log_file'])
