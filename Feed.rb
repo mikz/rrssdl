@@ -37,6 +37,7 @@ class Feed
 
     def initialize(main, id, uri, opts=nil) #opts = refresh_min=30,postdlcmd=nil
         @main = main
+        @main.logger.trace_enter
         @id = id
         @uri = uri
         @enabled = true
@@ -64,15 +65,19 @@ class Feed
                 end
             end
         end
+        @main.logger.trace_leave
     end
 
     def cmd(show)
+        @main.logger.trace_enter
         if show.postdlcmd.nil?
             shellcmd = @postdlcmd.nil? ? conf['post_dl_cmd'] : @postdlcmd
             shellcmd == '' ? nil : shellcmd
         else
             show.postdlcmd
         end
+        @main.logger.trace_leave
+        nil
     end
     
     def conf
@@ -92,29 +97,37 @@ class Feed
     end
 
     def read_feed
+        @main.logger.trace_enter
+        ret = nil
         begin
             content = ''
             log(verbose, "Reading RSS Feed for #{@id} (#{@uri})")
             open(@uri) { |r| content = r.read }
             feed = RSS::Parser.parse(content, false)
             raise "Unable to parse RSS Feed for #{@id} (#{@uri})" if feed.nil?
-            feed
+            ret = feed
         rescue => e
             log(true, "RSS Feed Error: #{e}")
-            nil
+            ret = nil
         end
+        @main.logger.trace_leave
+        ret
     end
 
     def sync_refresh_feed
+        @main.logger.trace_enter
         begin
             log(debug, "Performing Syncronized Feed Refresh")
             @main.mut.synchronize { Timeout::timeout(@timeout) { refresh_feed } }
         rescue => e
             log(true, "RSS Feed Refresh Error: #{e}")
         end
+        @main.logger.trace_leave
+        nil
     end
 
     def refresh_feed
+        @main.logger.trace_enter
         log(verbose, "Refreshing Feed for #{@id} (#{@uri})")
 
         feed = read_feed
@@ -153,6 +166,8 @@ EOF
             end
         end
         log(verbose, 'Done Processing Items')
+        @main.logger.trace_leave
+        nil
     end
 
     def to_s

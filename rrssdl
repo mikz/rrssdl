@@ -43,7 +43,7 @@ class Time
 end
 
 class RubyRssDownloader
-    attr_reader :conf, :shows, :feeds, :mut, :rxSeasonEp, :rxReject, :torTimeout
+    attr_reader :logger, :conf, :shows, :feeds, :mut, :rxSeasonEp, :rxReject, :torTimeout
 
     $VERSION = '0.2 BETA'
 
@@ -124,7 +124,12 @@ EOF
         @conf.has_key?('verbose')
     end
 
+    def quiet
+        @conf.has_key?('quiet')
+    end
+
     def init_settings
+        @logger.trace_enter
         log(debug, "Initializing In-Memory Settings")
         @shows = Hash.new
         @feeds = Hash.new
@@ -163,9 +168,12 @@ EOF
         end
 
         load_state
+        @logger.trace_leave
+        nil
     end
 
     def load_state
+        @logger.trace_enter
         log(verbose, 'Loading State File...')
         @state = ConfigFile.new(self)
         @state.file = @conf['state_file']
@@ -175,25 +183,34 @@ EOF
             si = @state.get_list(k)
             @shows[k].load_state(si)
         end
+        @logger.trace_leave
+        nil
     end
 
     def save_state
+        @logger.trace_enter
         log(verbose, 'Saving State File...')
         @shows.each_value do |s|
             @state[s.id] = s.get_state
         end
         @state.write_file
+        @logger.trace_leave
+        nil
     end
 
     def refresh_feeds
+        @logger.trace_enter
         log(verbose, 'Refreshing Feeds...')
         @feeds.each_value do |f|
             f.sync_refresh_feed
         end
         log(verbose, 'Feeds Refreshed')
+        @logger.trace_leave
+        nil
     end
 
     def run
+        @logger.trace_enter
         # catch Ctrl-C (Exit)
         Kernel.trap('INT') do
             save_state
@@ -228,12 +245,17 @@ EOF
         else
             main_loop
         end
+        @logger.trace_leave
+        nil
     end
 
     def main_loop
+        @logger.trace_enter
         loop do
             sleep 60
         end
+        @logger.trace_leave
+        nil
     end
 end
 

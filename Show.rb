@@ -34,6 +34,7 @@ class Show
 
     def initialize(main, id, regex, min_season, min_episode, opts)
         @main = main
+        @main.logger.trace_enter
         @id = id
         @regex = regex
         @min_season = @cur_season = min_season.to_i
@@ -45,6 +46,7 @@ class Show
             @postdlcmd = nil if @postdlcmd.empty?
             @feeds = opts.empty? ? nil : opts.map { |f| main.feeds[f] }.compact
         end
+        @main.logger.trace_leave
     end
 
     def conf
@@ -64,16 +66,24 @@ class Show
     end
 
     def belongs_to?(feed)
+        @main.logger.trace_enter
         log(debug, "Checking If Feed #{feed.id} Belongs to #{@id}")
-        @feeds.nil? or @feeds.include?(feed)
+        ret = @feeds.nil? or @feeds.include?(feed)
+        @main.logger.trace_leave
+        ret
     end
 
     def rxmatch(rx, string)
+        @main.logger.trace_enter
         log(debug, "Matching '#{string}' with regex '#{rx}'")
-        Regexp.new(rx, Regexp::IGNORECASE).match(string)
+        ret = Regexp.new(rx, Regexp::IGNORECASE).match(string)
+        @main.logger.trace_leave
+        ret
     end
 
     def new_show?(title)
+        @main.logger.trace_enter
+        ret = nil
         log(debug, "Checking If '#{title}' Is A New Show")
         @main.rxSeasonEp.each do |rx|
             m = rxmatch(rx, title)
@@ -83,35 +93,41 @@ class Show
                 log(debug, "#{id} Matches #{title}")
                 if  (m[1].to_i == @cur_season and m[2].to_i > @cur_episode) or m[1].to_i > @cur_season
                     log(verbose, "Found New Show For #{@id}: Season #{m[1]}, Episode #{m[2]}")
-                    return m[1,2]
+                    ret = m[1,2]
                 else
                     log(debug, "'#{title}' Is Older Than Season #{@cur_season}, Episode #{@cur_episode}")
-                    return false
+                    ret = false
                 end
             end
         end
-        nil
+        @main.logger.trace_leave
+        ret
     end
 
     def reject(title)
+        @main.logger.trace_enter
+        ret = false
         log(debug, "Checking if '#{title}' should be rejected")
         @main.rxReject.each do |rx|
             m = rxmatch(rx, title)
             unless m.nil?
                 log(debug, "'#{title}' is rejected")
-                return true
+                ret = true
             end
         end
 
-        false
+        @main.logger.trace_leave
+        ret
     end
 
     def match(i)
+        @main.logger.trace_enter
+        ret = nil
         log(debug, "Matching '#{i.title}' With '#{@regex}'")
         m = Regexp.new(@regex, Regexp::IGNORECASE).match(i.title)
         if m.nil?
             log(debug, "#{@id} doesn't match")
-            return nil
+            ret = nil
         else
             log(debug, "#{@id} matches '#{i.title}'")
             ep_info = new_show?(i.title)
@@ -119,7 +135,7 @@ class Show
             review = false
             if ep_info == false
                 log(debug, "#{i.title} is old, skipping")
-                return nil
+                ret = nil
             elsif ep_info.nil?
                 log(verbose, "WARNING: Couldn't Determin Season and Episode Info For '#{i.title}'")
                 dlpath = File.join(File.expand_path(conf['download_path_review']), "REVIEW-#{i.title.gsub(/[^\w]/, '_').gsub(/_+/, '_')}.torrent")
@@ -136,15 +152,19 @@ class Show
             end
             ret = nil
             Timeout::timeout(@main.torTimeout) { ret = download(i.link, dlpath) }
-            review ? nil : ret
+            ret = review ? nil : ret
         end
+        @main.logger.trace_leave
+        ret
     end
 
     def download(uri, dlpath)
+        @main.logger.trace_enter
+        ret = nil
         begin
             unless File.size?(dlpath).nil?
                 log(verbose, "'#{dlpath}' already exists, not downloading")
-                return nil
+                ret = nil
             end
 
             log(verbose, "Downloading #{uri} to #{dlpath}")
@@ -152,23 +172,31 @@ class Show
                 f.write(open(uri).read)
                 f.close 
             end
-            dlpath
+            ret = dlpath
         rescue => e
             log(true, "Download Error: #{e}")
-            nil
+            ret = nil
         end
+        @main.logger.trace_leave
+        ret
     end
 
     def load_state(si)
+        @main.logger.trace_enter
         return if si.length != 2
         log(debug, "Loading State For #{@id}: #{si.join(';')}")
         @cur_season = si[0].to_i
         @cur_episode = si[1].to_i
+        @main.logger.trace_leave
+        nil
     end
 
     def get_state
+        @main.logger.trace_enter
         log(debug, "State For #{@id}: #{@cur_season};#{@cur_episode}")
         "#{@cur_season};#{@cur_episode}"
+        @main.logger.trace_leave
+        nil
     end
 
     def to_s
