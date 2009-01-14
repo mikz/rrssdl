@@ -133,6 +133,7 @@ class Show
             ep_info = new_show?(i.title)
             dlpath = nil
             review = false
+            dl = true
             if ep_info == false
                 log(debug, "#{i.title} is old, skipping")
                 ret = nil
@@ -151,7 +152,7 @@ class Show
                 log(verbose, "Downloading Show '#{i.title}'")
             end
             ret = nil
-            Timeout::timeout(@main.torTimeout) { ret = download(i.link, dlpath) }
+            Timeout::timeout(@main.torTimeout) { ret = download(i.link, dlpath) } unless dlpath.nil?
             ret = review ? nil : ret
         end
         @main.logger.trace_leave
