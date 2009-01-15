@@ -195,9 +195,9 @@ class Show
     def get_state
         @main.logger.trace_enter
         log(debug, "State For #{@id}: #{@cur_season};#{@cur_episode}")
-        "#{@cur_season};#{@cur_episode}"
+        ret = "#{@cur_season};#{@cur_episode}"
         @main.logger.trace_leave
-        nil
+        ret
     end
 
     def to_s
