@@ -149,7 +149,7 @@ class Show
                 @cur_season = ep_info[0].to_i
                 @cur_episode = ep_info[1].to_i
                 dlpath = File.join(File.expand_path(conf['download_path']), "#{i.title.gsub(/[^\w]/, '_').gsub(/_+/, '_')}.torrent")
-                log(verbose, "Downloading Show '#{i.title}'")
+                log(verbose, "Show '#{i.title}' has a new epidsode ready for download")
             end
             ret = nil
             Timeout::timeout(@main.torTimeout) { ret = download(i.link, dlpath) } unless dlpath.nil?
@@ -168,7 +168,7 @@ class Show
                 ret = nil
             end
 
-            log(verbose, "Downloading #{uri} to #{dlpath}")
+            log(true, "Downloading #{uri} to #{dlpath}")
             File.open(dlpath, 'w') do |f| 
                 f.write(open(uri).read)
                 f.close 
