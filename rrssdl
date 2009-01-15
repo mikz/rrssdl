@@ -30,15 +30,19 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 require 'optparse'
 require 'thread'
+require 'log4r/configurator'
 
 require 'ConfigFile.rb'
 require 'Show.rb'
 require 'Feed.rb'
-require 'Logger.rb'
 
-class Time
-    def to_s
-        sprintf "%0.2d:%0.2d:%0.2d.%0.6d", hour, min, sec, tv_usec
+require 'log4r'
+include Log4r
+
+module Kernel
+    private
+    def methname
+        caller[0] =~ /`([^']*)'/ and $1
     end
 end
 
@@ -49,9 +53,11 @@ class RubyRssDownloader
 
     def initialize(args)
         begin
+            @logger = Logger["screen::file"].nil? ? Logger.root : Logger["screen::file"]
             @mut = Mutex.new
             params = {'file' => '~/.rrssdlrc'}
-            @logger = Logger.new(self)
+
+            Configurator.load_xml_file('log4r_config.xml')
 
             OptionParser.new do |opts|
                 opts.banner =
@@ -75,11 +81,11 @@ EOF
                 end
                 opts.on('-d', '--debug') do
                     params['debug'] = true
-                    log(true, "DEBUG = 'ON'")
+                    @logger.info("DEBUG = 'ON'")
                 end
                 opts.on('-v', '--verbose') do
                     params['verbose'] = true
-                    log(true, "VERBOSE = 'ON'")
+                    @logger.info("VERBOSE = 'ON'")
                 end
                 opts.on('-q', '--quiet') do
                     params['quiet'] = true
@@ -87,49 +93,33 @@ EOF
 
                 opts.on('-c', '--config [ARG]') do |c| 
                     params['file'] = c
-                    log(true, "Config Path = #{c}")
+                    @logger.info("Config Path = #{c}")
                 end
                 opts.on('-D', '--daemon') do
                     params['daemon'] = true
-                    log(true, "DAEMON MODE = 'ON'")
+                    @logger.info("DAEMON MODE = 'ON'")
                 end
             end.parse!(args)
         rescue => e
-            log(true, "Option Parser Error: #{e}")
+            @logger.error("Option Parser Error: #{e}")
         end
 
         @conf = ConfigFile.new(self)
         @conf.init_params(params)
-        if @conf.has_key?('log_file')
-            log(verbose, 'Deleting Previous Log File')
-            begin
-                File.delete(File.expand_path(@conf['log_file']))
-            rescue => e
-                log(true, "WARNING: Log File: #{e}")
-            end
-        end
 
         init_settings
     end
 
-    def log(level, text, ts=true)
-        @logger.log(level, text, ts)
+    def te
+        @logger.trace("ENTER '#{methname}'")
     end
 
-    def debug
-        @conf.has_key?('debug') 
-    end
-
-    def verbose
-        @conf.has_key?('verbose')
-    end
-
-    def quiet
-        @conf.has_key?('quiet')
+    def tl
+        @logger.trace("LEAVE '#{methname}'")
     end
 
     def init_settings
-        @logger.trace_enter
+        te 
         log(debug, "Initializing In-Memory Settings")
         @shows = Hash.new
         @feeds = Hash.new
@@ -168,7 +158,7 @@ EOF
         end
 
         load_state
-        @logger.trace_leave
+        tl
         nil
     end
 

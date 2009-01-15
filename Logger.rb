@@ -28,13 +28,6 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 require 'thread'
 
-module Kernel
-    private
-    def last_method_name
-        caller[1] =~ /`([^']*)'/ and $1
-    end
-end
-
 class Logger
     def initialize(main)
         @main = main

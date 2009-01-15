@@ -2,20 +2,11 @@
 # the key's existence defines a true value
 # its absence defines a false value
 
-# verbosity of output
-quiet = true
-trace = true
-debug = true
-verbose = true
-
 # Daemon mode
 #daemon = true
 
 # state file keeps track of what episode each id is on
 state_file = ~/.rrssdlstate
-# log output
-log_file = /tmp/rrssdl.log
-
 # where to put downloaded torrent files
 download_path = /tmp
 # where to put downloaded files that we couldn't determine the

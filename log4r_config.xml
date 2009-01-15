@@ -1,0 +1,29 @@
+<log4r_config>
+
+    <pre_config>
+        <custom_levels>TRACE, DEBUG, INFO, WARN, ERROR, FATAL</custom_levels>
+        <global level="ALL"/>
+    </pre_config>
+
+    <!-- Formatters -->
+
+    <!-- Outputters -->
+    <outputter name="screen" type="StdoutOutputter" level="INFO">
+        <formatter type="PatternFormatter" pattern="%M"/>
+    </outputter>
+
+    <outputter name="file" type="FileOutputter" level="TRACE" trunc="true">
+        <filename>/tmp/rrssdl.log</filename>
+        <formatter type="PatternFormatter" pattern="[%5l %d] %C: %M [%t]"/>
+    </outputter>
+
+    <!-- Loggers -->
+    <logger name="screen" level="INFO">
+        <outputter>screen</outputter>
+    </logger>
+
+    <logger name="screen::file" level="DEBUG">
+        <outputter>file</outputter>
+    </logger>
+
+</log4r_config>
