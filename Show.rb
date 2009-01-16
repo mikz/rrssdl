@@ -54,11 +54,11 @@ class Show
     end
 
     def te
-        #@logger.trace {"ENTER '#{methname}'"}
+        @logger.ftrace {"ENTER '#{methname}'"}
     end
 
     def tl
-        #@logger.trace {"LEAVE '#{methname}'"}
+        @logger.ftrace {"LEAVE '#{methname}'"}
     end
 
     def conf

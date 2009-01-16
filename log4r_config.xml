@@ -20,12 +20,11 @@
     </outputter>
 
     <!-- Loggers -->
-    <logger name="screen" level="ALL" additive="false" trace="false">
+    <logger name="screen" level="NOTICE" additive="false" trace="false">
         <outputter>screen</outputter>
     </logger>
 
-    <!-- NOTE: if using trace_pattern, level ***MUST*** be ALL -->
-    <logger name="screen::file" level="ALL" additive="true" trace="true">
+    <logger name="screen::file" level="FTRACE" additive="true" trace="true">
         <outputter>file</outputter>
     </logger>
 

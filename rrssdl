@@ -42,7 +42,7 @@ include Log4r
 module Kernel
     private
     def methname
-        caller[0] =~ /`([^']*)'/ and $1
+        caller[2] =~ /`([^']*)'/ and $1
     end
 end
 
@@ -55,6 +55,8 @@ class RubyRssDownloader
         begin
             Configurator.load_xml_file('log4r_config.xml')
             @logger = Logger["screen::file"].nil? ? Logger.root : Logger["screen::file"]
+### **** CHANGE ALL te/tl's to @logger.ftrace {'ENTER'}/@logger.ftrace {'LEAVE'}
+            @logger.ftrace {"ENTER"}
             te
             @mut = Mutex.new
             params = {'file' => '~/.rrssdlrc'}
@@ -112,11 +114,11 @@ EOF
     end
 
     def te
-        #@logger.trace {"ENTER '#{methname}'"}
+        @logger.ftrace {"ENTER '#{methname}'"}
     end
 
     def tl
-        #@logger.trace {"LEAVE '#{methname}'"}
+        @logger.ftrace {"LEAVE '#{methname}'"}
     end
 
     def init_settings
