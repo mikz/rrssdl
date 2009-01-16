@@ -57,7 +57,7 @@ class RubyRssDownloader
             @logger = Logger["screen::file"].nil? ? Logger.root : Logger["screen::file"]
 ### **** CHANGE ALL te/tl's to @logger.ftrace {'ENTER'}/@logger.ftrace {'LEAVE'}
             @logger.ftrace {"ENTER"}
-            te
+            @logger.FTRACE {ENTER}
             @mut = Mutex.new
             params = {'file' => '~/.rrssdlrc'}
 
@@ -110,7 +110,7 @@ EOF
         @conf.init_params(params)
 
         init_settings
-        tl
+        @logger.FTRACE {LEAVE}
     end
 
     def te
@@ -122,7 +122,7 @@ EOF
     end
 
     def init_settings
-        te 
+        @logger.FTRACE {ENTER}
         @logger.debug {"Initializing In-Memory Settings"}
         @shows = Hash.new
         @feeds = Hash.new
@@ -161,12 +161,12 @@ EOF
         end
 
         load_state
-        tl
+        @logger.FTRACE {LEAVE}
         nil
     end
 
     def load_state
-        te
+        @logger.FTRACE {ENTER}
         @logger.notice {'Loading State File...'}
         @state = ConfigFile.new(self)
         @state.file = @conf['state_file']
@@ -177,35 +177,35 @@ EOF
             @logger.debug {"Loading State Item: #{k} = #{si}"}
             @shows[k].load_state(si)
         end
-        tl
+        @logger.FTRACE {LEAVE}
         nil
     end
 
     def save_state
-        te
+        @logger.FTRACE {ENTER}
         @logger.notice {'Saving State File...'}
         @shows.each_value do |s|
             @logger.debug {"Saving State Item: #{s.id} = #{s.get_state}"}
             @state[s.id] = s.get_state
         end
         @state.write_file
-        tl
+        @logger.FTRACE {LEAVE}
         nil
     end
 
     def refresh_feeds
-        te
+        @logger.FTRACE {ENTER}
         @logger.info {'Refreshing Feeds...'}
         @feeds.each_value do |f|
             f.sync_refresh_feed
         end
         @logger.info {'Feeds Refreshed'}
-        tl
+        @logger.FTRACE {LEAVE}
         nil
     end
 
     def run
-        te
+        @logger.FTRACE {ENTER}
         # catch Ctrl-C (Exit)
         Kernel.trap('INT') do
             save_state
@@ -240,16 +240,16 @@ EOF
         else
             main_loop
         end
-        tl
+        @logger.FTRACE {LEAVE}
         nil
     end
 
     def main_loop
-        te
+        @logger.FTRACE {ENTER}
         loop do
             sleep 60
         end
-        tl
+        @logger.FTRACE {LEAVE}
         nil
     end
 end

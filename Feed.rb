@@ -41,7 +41,7 @@ class Feed
     def initialize(main, id, uri, opts=nil) #opts = refresh_min=30,postdlcmd=nil
         @logger = Logger["screen::file"].nil? ? Logger.root : Logger["screen::file"]
         @main = main
-        te
+        @logger.FTRACE {ENTER}
         @id = id
         @uri = uri
         @enabled = true
@@ -69,7 +69,7 @@ class Feed
                 end
             end
         end
-        tl
+        @logger.FTRACE {LEAVE}
     end
 
     def te
@@ -81,14 +81,14 @@ class Feed
     end
 
     def cmd(show)
-        te
+        @logger.FTRACE {ENTER}
         if show.postdlcmd.nil?
             shellcmd = @postdlcmd.nil? ? conf['post_dl_cmd'] : @postdlcmd
             shellcmd == '' ? nil : shellcmd
         else
             show.postdlcmd
         end
-        tl
+        @logger.FTRACE {LEAVE}
         nil
     end
     
@@ -97,7 +97,7 @@ class Feed
     end
 
     def read_feed
-        te
+        @logger.FTRACE {ENTER}
         ret = nil
         begin
             content = ''
@@ -110,24 +110,24 @@ class Feed
             @logger.error {"RSS Feed Error: #{e}"}
             ret = nil
         end
-        tl
+        @logger.FTRACE {LEAVE}
         ret
     end
 
     def sync_refresh_feed
-        te
+        @logger.FTRACE {ENTER}
         begin
             @logger.debug {"Performing Syncronized Feed Refresh"}
             @main.mut.synchronize { Timeout::timeout(@timeout) { refresh_feed } }
         rescue => e
             @logger.error {"RSS Feed Refresh Error: #{e}"}
         end
-        tl
+        @logger.FTRACE {LEAVE}
         nil
     end
 
     def refresh_feed
-        te
+        @logger.FTRACE {ENTER}
         @logger.info {"Refreshing Feed for #{@id} (#{@uri})"}
 
         feed = read_feed
@@ -166,7 +166,7 @@ EOF
             end
         end
         @logger.info {'Done Processing Items'}
-        tl
+        @logger.FTRACE {LEAVE}
         nil
     end
 
