@@ -13,10 +13,11 @@ log = Logger['screen::file']
 
 msg = "WORK YOU PIECE OF SHIT!!!"
 
+log.ftrace {msg}
 log.debug  {msg}
 log.info   {msg}
 log.notice {msg}
 log.warn   {msg}
 log.error  {msg}
 log.fatal  {msg}
-
+log.trace  {msg}
