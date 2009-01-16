@@ -1,7 +1,7 @@
 <log4r_config>
 
     <pre_config>
-        <custom_levels>TRACE, DEBUG, INFO, NOTICE, WARN, ERROR, FATAL</custom_levels>
+        <custom_levels>DEBUG, INFO, NOTICE, WARN, ERROR, FATAL</custom_levels>
         <global level="ALL"/>
         <parameter name="trace_pattern" value="[%6l %d] %c: %M [%t]" />
         <parameter name="debug_pattern" value="[%6l %d] %c: %M" />
@@ -10,24 +10,24 @@
     <!-- Outputters -->
     <outputter name="screen" type="StdoutOutputter">
         <formatter type="Log4r::PatternFormatter">
-            <pattern>%M</pattern>
+            <pattern>[%6l] %M</pattern>
         </formatter>
     </outputter>
 
     <outputter name="file" type="FileOutputter" trunc="true">
         <filename>/tmp/rrssdl.log</filename>
         <formatter type="Log4r::PatternFormatter">
-            <pattern>#{trace_pattern}</pattern>
+            <pattern>#{debug_pattern}</pattern>
         </formatter>
     </outputter>
 
     <!-- Loggers -->
-    <logger name="screen" level="NOTICE">
+    <logger name="screen" level="ALL" additive="false" trace="true">
         <outputter>screen</outputter>
     </logger>
 
     <!-- NOTE: if using trace_pattern, level ***MUST*** be ALL -->
-    <logger name="file" level="ALL" trace="true">
+    <logger name="screen::file" level="ALL" additive="true" trace="true">
         <outputter>file</outputter>
     </logger>
 

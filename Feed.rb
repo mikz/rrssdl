@@ -32,12 +32,16 @@ require 'rss/1.0'
 require 'rss/2.0'
 require 'thread'
 
+require 'log4r'
+include Log4r
+
 class Feed
     attr_accessor :id, :refresh_sec, :uri, :postdlcmd, :enabled
 
     def initialize(main, id, uri, opts=nil) #opts = refresh_min=30,postdlcmd=nil
+        @logger = Logger["screen::file"].nil? ? Logger.root : Logger["screen::file"]
         @main = main
-        @main.logger.trace_enter
+        te
         @id = id
         @uri = uri
         @enabled = true
@@ -50,33 +54,41 @@ class Feed
 
         raise "Missing required URI for feed #{id}" if @uri.nil?
 
-        log(verbose, "Setting Up Feed Timer for #{id} (#{@refresh_sec} Seconds)")
+        @logger.info {"Setting Up Feed Timer for #{id} (#{@refresh_sec} Seconds)"}
         #setup timer event
         @timeout = conf['feed_timeout_seconds'].to_i
         timeout = @refresh_sec if timeout == 0
         Thread.new do
             while @enabled do
                 begin
-                    log(debug, "Sleeping for #{@refresh_sec} Seconds")
+                    @logger.debug {"Sleeping for #{@refresh_sec} Seconds"}
                     sleep(@refresh_sec)
                     sync_refresh_feed
                 rescue => e
-                    log(true, "Feed Error: #{e}")
+                    @logger.error {"Feed Error: #{e}"}
                 end
             end
         end
-        @main.logger.trace_leave
+        tl
+    end
+
+    def te
+        #@logger.trace {"ENTER '#{methname}'"}
+    end
+
+    def tl
+        #@logger.trace {"LEAVE '#{methname}'"}
     end
 
     def cmd(show)
-        @main.logger.trace_enter
+        te
         if show.postdlcmd.nil?
             shellcmd = @postdlcmd.nil? ? conf['post_dl_cmd'] : @postdlcmd
             shellcmd == '' ? nil : shellcmd
         else
             show.postdlcmd
         end
-        @main.logger.trace_leave
+        tl
         nil
     end
     
@@ -84,56 +96,44 @@ class Feed
         @main.conf
     end
 
-    def debug
-        @main.debug
-    end
-
-    def verbose
-        @main.verbose
-    end
-
-    def log(level, text, ts=true)
-        @main.log(level, text, ts)
-    end
-
     def read_feed
-        @main.logger.trace_enter
+        te
         ret = nil
         begin
             content = ''
-            log(verbose, "Reading RSS Feed for #{@id} (#{@uri})")
+            @logger.info {"Reading RSS Feed for #{@id} (#{@uri})"}
             open(@uri) { |r| content = r.read }
             feed = RSS::Parser.parse(content, false)
             raise "Unable to parse RSS Feed for #{@id} (#{@uri})" if feed.nil?
             ret = feed
         rescue => e
-            log(true, "RSS Feed Error: #{e}")
+            @logger.error {"RSS Feed Error: #{e}"}
             ret = nil
         end
-        @main.logger.trace_leave
+        tl
         ret
     end
 
     def sync_refresh_feed
-        @main.logger.trace_enter
+        te
         begin
-            log(debug, "Performing Syncronized Feed Refresh")
+            @logger.debug {"Performing Syncronized Feed Refresh"}
             @main.mut.synchronize { Timeout::timeout(@timeout) { refresh_feed } }
         rescue => e
-            log(true, "RSS Feed Refresh Error: #{e}")
+            @logger.error {"RSS Feed Refresh Error: #{e}"}
         end
-        @main.logger.trace_leave
+        tl
         nil
     end
 
     def refresh_feed
-        @main.logger.trace_enter
-        log(verbose, "Refreshing Feed for #{@id} (#{@uri})")
+        te
+        @logger.info {"Refreshing Feed for #{@id} (#{@uri})"}
 
         feed = read_feed
         return if feed.nil?
 
-        log(verbose, "Found #{feed.items.length} Items, Processing...")
+        @logger.info {"Found #{feed.items.length} Items, Processing..."}
         feed.items.each do |i|
             str = <<EOF
 ------------------------
@@ -144,29 +144,29 @@ RSS Feed Item
 #{i.description}
 ========================
 EOF
-            log(debug, str, false)
+            @logger.debug {str}
             @main.shows.each_value do |s|
                 if s.belongs_to?(self)
-                    log(debug, "#{s.id} Is Paired With #{@id}")
+                    @logger.debug {"#{s.id} Is Paired With #{@id}"}
                     dlpath = s.match(i)
                     unless dlpath.nil?
                         shell_cmd = cmd(s)
                         unless shell_cmd.nil? or shell_cmd == ''
                             torfile = File.basename(dlpath)
                             shell_cmd = shell_cmd.gsub('%T', dlpath).gsub('%t', torfile)
-                            log(debug, "Executing `#{shell_cmd}`...")
+                            @logger.debug {"Executing `#{shell_cmd}`..."}
                             result = nil
                             Timeout::timeout(60) { result = `#{shell_cmd}` }
-                            log(debug, "Returned [#{result}]") unless result.nil?
+                            @logger.debug {"Returned [#{result}]"} unless result.nil?
                         end
                     end
                 else
-                    log(debug, "#{s.id} Isn't Paired With #{@id}")
+                    @logger.debug {"#{s.id} Isn't Paired With #{@id}"}
                 end
             end
         end
-        log(verbose, 'Done Processing Items')
-        @main.logger.trace_leave
+        @logger.info {'Done Processing Items'}
+        tl
         nil
     end
 

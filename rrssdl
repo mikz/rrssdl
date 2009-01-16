@@ -53,11 +53,11 @@ class RubyRssDownloader
 
     def initialize(args)
         begin
+            Configurator.load_xml_file('log4r_config.xml')
             @logger = Logger["screen::file"].nil? ? Logger.root : Logger["screen::file"]
+            te
             @mut = Mutex.new
             params = {'file' => '~/.rrssdlrc'}
-
-            Configurator.load_xml_file('log4r_config.xml')
 
             OptionParser.new do |opts|
                 opts.banner =
@@ -81,11 +81,11 @@ EOF
                 end
                 opts.on('-d', '--debug') do
                     params['debug'] = true
-                    @logger.info("DEBUG = 'ON'")
+                    @logger.info {"DEBUG = 'ON'"}
                 end
                 opts.on('-v', '--verbose') do
                     params['verbose'] = true
-                    @logger.info("VERBOSE = 'ON'")
+                    @logger.info {"VERBOSE = 'ON'"}
                 end
                 opts.on('-q', '--quiet') do
                     params['quiet'] = true
@@ -93,57 +93,58 @@ EOF
 
                 opts.on('-c', '--config [ARG]') do |c| 
                     params['file'] = c
-                    @logger.info("Config Path = #{c}")
+                    @logger.info {"Config Path = #{c}"}
                 end
                 opts.on('-D', '--daemon') do
                     params['daemon'] = true
-                    @logger.info("DAEMON MODE = 'ON'")
+                    @logger.info {"DAEMON MODE = 'ON'"}
                 end
             end.parse!(args)
         rescue => e
-            @logger.error("Option Parser Error: #{e}")
+            @logger.error {"Option Parser Error: #{e}"}
         end
 
         @conf = ConfigFile.new(self)
         @conf.init_params(params)
 
         init_settings
+        tl
     end
 
     def te
-        @logger.trace("ENTER '#{methname}'")
+        #@logger.trace {"ENTER '#{methname}'"}
     end
 
     def tl
-        @logger.trace("LEAVE '#{methname}'")
+        #@logger.trace {"LEAVE '#{methname}'"}
     end
 
     def init_settings
         te 
-        log(debug, "Initializing In-Memory Settings")
+        @logger.debug {"Initializing In-Memory Settings"}
         @shows = Hash.new
         @feeds = Hash.new
 
-        log(verbose, 'Building Feed Collection...')
+        @logger.info {'Building Feed Collection...'}
         @conf.get_list('enabled_feed_ids').each do |f|
             fi = @conf.get_list(f)
             if fi.length < 1
-                log(true, "Poorly formed feed line [#{f}]")
+                @logger.error {"Poorly formed feed line [#{f}]"}
                 next
             end
             @feeds[f] = Feed.new(self, f, fi.shift, fi)
-            log(debug, @feeds[f].to_s.strip, false)
+            @logger.debug {@feeds[f].to_s.strip}
         end
 
-        log(verbose, 'Building Show Collection...')
+        @logger.info {'Building Show Collection...'}
         @conf.get_list('enabled_show_ids').each do |s|
             si = @conf.get_list(s)
             if si.length < 3
-                log(true, "Poorly formed show line [#{s}]")
+                @logger.error {"Poorly formed show line [#{s}]"}
                 next
             end
             @shows[s] = Show.new(self, s, si.shift, si.shift, si.shift, si)
-            log(debug, @shows[s].to_s.strip, false)
+            @logger.debug(@shows[s].to_s.strip)
         end
         
         @rxSeasonEp = conf.get_list('season_ep_regex')
@@ -154,7 +155,7 @@ EOF
             Dir.mkdir(conf['download_path']) unless File.directory?(conf['download_path'])
             Dir.mkdir(conf['download_path_review']) unless File.directory?(conf['download_path_review'])
         rescue => e
-            log(true, "Directory Creation Error: #{e}")
+            @logger.error {"Directory Creation Error: #{e}"}
         end
 
         load_state
@@ -163,54 +164,56 @@ EOF
     end
 
     def load_state
-        @logger.trace_enter
-        log(verbose, 'Loading State File...')
+        te
+        @logger.notice {'Loading State File...'}
         @state = ConfigFile.new(self)
         @state.file = @conf['state_file']
         @state.read_file
         @state.each_key do |k|
             next unless @shows.has_key?(k)
             si = @state.get_list(k)
+            @logger.debug {"Loading State Item: #{k} = #{si}"}
             @shows[k].load_state(si)
         end
-        @logger.trace_leave
+        tl
         nil
     end
 
     def save_state
-        @logger.trace_enter
-        log(verbose, 'Saving State File...')
+        te
+        @logger.notice {'Saving State File...'}
         @shows.each_value do |s|
+            @logger.debug {"Saving State Item: #{s.id} = #{s.get_state}"}
             @state[s.id] = s.get_state
         end
         @state.write_file
-        @logger.trace_leave
+        tl
         nil
     end
 
     def refresh_feeds
-        @logger.trace_enter
-        log(verbose, 'Refreshing Feeds...')
+        te
+        @logger.info {'Refreshing Feeds...'}
         @feeds.each_value do |f|
             f.sync_refresh_feed
         end
-        log(verbose, 'Feeds Refreshed')
-        @logger.trace_leave
+        @logger.info {'Feeds Refreshed'}
+        tl
         nil
     end
 
     def run
-        @logger.trace_enter
+        te
         # catch Ctrl-C (Exit)
         Kernel.trap('INT') do
             save_state
-            log(verbose, 'Exiting...')
+            @logger.notice {'Exiting...'}
             exit(0)
         end
         
         # catch SIGHUP
         Kernel.trap('HUP') do
-            log(verbose, 'Reloading Config...')
+            @logger.notice {'Reloading Config...'}
             # kill all feed timers
             @feeds.each_value do |f|
                 f.enabled = false
@@ -224,27 +227,27 @@ EOF
         refresh_feeds
 
         if @conf.has_key?('daemon')
-            log(verbose, 'Daemonizing...')
+            @logger.notice {'Daemonizing...'}
             pid = fork do
                 main_loop
             end
             if (pid > 0)
-                log(verbose, "Daemon PID = #{pid}")
+                @logger.notice {"Daemon PID = #{pid}"}
                 Process.detach(pid)
             end
         else
             main_loop
         end
-        @logger.trace_leave
+        tl
         nil
     end
 
     def main_loop
-        @logger.trace_enter
+        te
         loop do
             sleep 60
         end
-        @logger.trace_leave
+        tl
         nil
     end
 end

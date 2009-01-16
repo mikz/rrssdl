@@ -1,4 +1,4 @@
 #!/bin/bash
 
-ruby rrssdl -d -c ./rrssdlrc
+ruby test.rb
 

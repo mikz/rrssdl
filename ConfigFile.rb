@@ -26,6 +26,9 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 =end
 
+require 'log4r'
+include Log4r
+
 class ConfigFile
     attr_reader :conf
     attr_accessor :file
@@ -35,38 +38,38 @@ class ConfigFile
     $kvpair  = Regexp.new('^\s*([^=]+)=\s*(.*)$')
 
     def initialize(main)
+        @logger = Logger["screen::file"].nil? ? Logger.root : Logger["screen::file"]
+        te
         @main = main
         @conf = Hash.new
+        tl
+    end
+
+    def te
+        #@logger.trace {"ENTER '#{methname}'"}
+    end
+
+    def tl
+        #@logger.trace {"LEAVE '#{methname}'"}
     end
 
     def init_params(params)
+        @logger = Logger["screen::file"].nil? ? Logger.root : Logger["screen::file"]
         @file = params['file']
 
-        log(debug, "Applying: #{params.each_key.map { |k| "#{k} => #{params[k]}" }.join(', ')}")
+        @logger.debug {"Applying: #{params.each_key.map { |k| "#{k} => #{params[k]}" }.join(', ')}"}
         params.each_pair do |k,v|
             self[k] = v
         end
 
         read_file
 
-        log(debug, "Re-applying: #{params.each_key.map { |k| "#{k} => #{params[k]}" }.join(', ')}")
+        @logger.debug {"Re-applying: #{params.each_key.map { |k| "#{k} => #{params[k]}" }.join(', ')}"}
         params.each_pair do |k,v|
             self[k] = v
         end
     end
     
-    def debug
-        @main.debug
-    end
-
-    def verbose
-        @main.verbose
-    end
-    
-    def log(level, text, ts=true)
-        @main.log(level, text, ts)
-    end
-
     def has_key?(key)
         @conf.has_key?(key)
     end
@@ -89,42 +92,43 @@ class ConfigFile
 
     def read_file
         begin
-            log(verbose, "Reading Config File '#{@file}'")
+            @logger.notice {"Reading Config File '#{@file}'"}
             lineno = 1
             File.open(File.expand_path(@file), 'r').each do |line|
-                log(debug, "Line #{sprintf('%03d', lineno)}: #{line}")
+                @logger.debug {"Line #{sprintf('%03d', lineno)}: #{line}"}
                 unless $white.match(line) or $comment.match(line)
                     m = $kvpair.match(line)
                     if m.nil? or m.length != 3
-                        log(true, "WARNING: Incorrect Config Line Format (Line #{lineno})")
+                        @logger.warn {"WARNING: Incorrect Config Line Format (Line #{lineno})"}
                     else
                         k = m[1].strip
                         v = m[2].strip
                         self[k] = v
-                        log(debug, "PAIR: #{k.to_s} = #{v.to_s}")
+                        @logger.debug {"PAIR: #{k.to_s} = #{v.to_s}"}
                     end
                 end
                 lineno += 1
             end
         rescue => e
-            log(true, "Config Read Error: #{e}")
+            @logger.fatal {"Config Read Error: #{e}"}
+            exit(-1)
         end
     end
 
     def write_file
         begin
-            log(verbose, "Writing Config File '#{@file}'")
+            @logger.notice {"Writing Config File '#{@file}'"}
             File.open(File.expand_path(@file), 'w') do |fd|
                 lineno = 1
                 @conf.each do |k,v| 
                     line = "#{k} = #{v}\n"
-                    log(debug, "Line #{sprintf('%03d', lineno)}: #{line}")
+                    @logger.debug {"Line #{sprintf('%03d', lineno)}: #{line}"}
                     fd.write(line)
                     lineno += 1
                 end
             end
         rescue => e
-            log(true, "Config Write Error: #{e}")
+            @logger.error {"Config Write Error: #{e}"}
         end
     end
 end
