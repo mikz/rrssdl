@@ -49,7 +49,7 @@ end
 class RubyRssDownloader
     attr_reader :logger, :conf, :shows, :feeds, :mut, :rxSeasonEp, :rxReject, :torTimeout
 
-    $VERSION = '0.2 BETA'
+    $VERSION = '0.3b'
 
     def initialize(args)
         begin
