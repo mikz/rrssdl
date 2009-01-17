@@ -55,9 +55,7 @@ class RubyRssDownloader
         begin
             Configurator.load_xml_file('log4r_config.xml')
             @logger = Logger["screen::file"].nil? ? Logger.root : Logger["screen::file"]
-### **** CHANGE ALL te/tl's to @logger.ftrace {'ENTER'}/@logger.ftrace {'LEAVE'}
-            @logger.ftrace {"ENTER"}
-            @logger.FTRACE {ENTER}
+            @logger.ftrace {'ENTER'}
             @mut = Mutex.new
             params = {'file' => '~/.rrssdlrc'}
 
@@ -110,7 +108,7 @@ EOF
         @conf.init_params(params)
 
         init_settings
-        @logger.FTRACE {LEAVE}
+        @logger.ftrace {'LEAVE'}
     end
 
     def te
@@ -122,7 +120,7 @@ EOF
     end
 
     def init_settings
-        @logger.FTRACE {ENTER}
+        @logger.ftrace {'ENTER'}
         @logger.debug {"Initializing In-Memory Settings"}
         @shows = Hash.new
         @feeds = Hash.new
@@ -161,12 +159,12 @@ EOF
         end
 
         load_state
-        @logger.FTRACE {LEAVE}
+        @logger.ftrace {'LEAVE'}
         nil
     end
 
     def load_state
-        @logger.FTRACE {ENTER}
+        @logger.ftrace {'ENTER'}
         @logger.notice {'Loading State File...'}
         @state = ConfigFile.new(self)
         @state.file = @conf['state_file']
@@ -177,35 +175,35 @@ EOF
             @logger.debug {"Loading State Item: #{k} = #{si}"}
             @shows[k].load_state(si)
         end
-        @logger.FTRACE {LEAVE}
+        @logger.ftrace {'LEAVE'}
         nil
     end
 
     def save_state
-        @logger.FTRACE {ENTER}
+        @logger.ftrace {'ENTER'}
         @logger.notice {'Saving State File...'}
         @shows.each_value do |s|
             @logger.debug {"Saving State Item: #{s.id} = #{s.get_state}"}
             @state[s.id] = s.get_state
         end
         @state.write_file
-        @logger.FTRACE {LEAVE}
+        @logger.ftrace {'LEAVE'}
         nil
     end
 
     def refresh_feeds
-        @logger.FTRACE {ENTER}
+        @logger.ftrace {'ENTER'}
         @logger.info {'Refreshing Feeds...'}
         @feeds.each_value do |f|
             f.sync_refresh_feed
         end
         @logger.info {'Feeds Refreshed'}
-        @logger.FTRACE {LEAVE}
+        @logger.ftrace {'LEAVE'}
         nil
     end
 
     def run
-        @logger.FTRACE {ENTER}
+        @logger.ftrace {'ENTER'}
         # catch Ctrl-C (Exit)
         Kernel.trap('INT') do
             save_state
@@ -240,16 +238,16 @@ EOF
         else
             main_loop
         end
-        @logger.FTRACE {LEAVE}
+        @logger.ftrace {'LEAVE'}
         nil
     end
 
     def main_loop
-        @logger.FTRACE {ENTER}
+        @logger.ftrace {'ENTER'}
         loop do
             sleep 60
         end
-        @logger.FTRACE {LEAVE}
+        @logger.ftrace {'LEAVE'}
         nil
     end
 end

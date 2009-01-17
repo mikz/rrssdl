@@ -39,10 +39,10 @@ class ConfigFile
 
     def initialize(main)
         @logger = Logger["screen::file"].nil? ? Logger.root : Logger["screen::file"]
-        @logger.FTRACE {ENTER}
+        @logger.ftrace {'ENTER'}
         @main = main
         @conf = Hash.new
-        @logger.FTRACE {LEAVE}
+        @logger.ftrace {'LEAVE'}
     end
 
     def te

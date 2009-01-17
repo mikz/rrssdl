@@ -37,7 +37,7 @@ class Show
 
     def initialize(main, id, regex, min_season, min_episode, opts)
         @logger = Logger["screen::file"].nil? ? Logger.root : Logger["screen::file"]
-        @logger.FTRACE {ENTER}
+        @logger.ftrace {'ENTER'}
         @main = main
         @id = id
         @regex = regex
@@ -50,7 +50,7 @@ class Show
             @postdlcmd = nil if @postdlcmd.empty?
             @feeds = opts.empty? ? nil : opts.map { |f| main.feeds[f] }.compact
         end
-        @logger.FTRACE {LEAVE}
+        @logger.ftrace {'LEAVE'}
     end
 
     def te
@@ -66,23 +66,23 @@ class Show
     end
 
     def belongs_to?(feed)
-        @logger.FTRACE {ENTER}
+        @logger.ftrace {'ENTER'}
         @logger.debug {"Checking If Feed #{feed.id} Belongs to #{@id}"}
         ret = @feeds.nil? or @feeds.include?(feed)
-        @logger.FTRACE {LEAVE}
+        @logger.ftrace {'LEAVE'}
         ret
     end
 
     def rxmatch(rx, string)
-        @logger.FTRACE {ENTER}
+        @logger.ftrace {'ENTER'}
         @logger.debug {"Matching '#{string}' with regex '#{rx}'"}
         ret = Regexp.new(rx, Regexp::IGNORECASE).match(string)
-        @logger.FTRACE {LEAVE}
+        @logger.ftrace {'LEAVE'}
         ret
     end
 
     def new_show?(title)
-        @logger.FTRACE {ENTER}
+        @logger.ftrace {'ENTER'}
         ret = nil
         @logger.debug {"Checking If '#{title}' Is A New Show"}
         @main.rxSeasonEp.each do |rx|
@@ -100,12 +100,12 @@ class Show
                 end
             end
         end
-        @logger.FTRACE {LEAVE}
+        @logger.ftrace {'LEAVE'}
         ret
     end
 
     def reject(title)
-        @logger.FTRACE {ENTER}
+        @logger.ftrace {'ENTER'}
         ret = false
         @logger.debug {"Checking if '#{title}' should be rejected"}
         @main.rxReject.each do |rx|
@@ -116,12 +116,12 @@ class Show
             end
         end
 
-        @logger.FTRACE {LEAVE}
+        @logger.ftrace {'LEAVE'}
         ret
     end
 
     def match(i)
-        @logger.FTRACE {ENTER}
+        @logger.ftrace {'ENTER'}
         ret = nil
         @logger.debug {"Matching '#{i.title}' With '#{@regex}'"}
         m = Regexp.new(@regex, Regexp::IGNORECASE).match(i.title)
@@ -155,12 +155,12 @@ class Show
             Timeout::timeout(@main.torTimeout) { ret = download(i.link, dlpath) } unless dlpath.nil?
             ret = review ? nil : ret
         end
-        @logger.FTRACE {LEAVE}
+        @logger.ftrace {'LEAVE'}
         ret
     end
 
     def download(uri, dlpath)
-        @logger.FTRACE {ENTER}
+        @logger.ftrace {'ENTER'}
         ret = nil
         begin
             unless File.size?(dlpath).nil?
@@ -178,25 +178,25 @@ class Show
             @logger.error {"Download Error: #{e}"}
             ret = nil
         end
-        @logger.FTRACE {LEAVE}
+        @logger.ftrace {'LEAVE'}
         ret
     end
 
     def load_state(si)
-        @logger.FTRACE {ENTER}
+        @logger.ftrace {'ENTER'}
         return if si.length != 2
         @logger.debug {"Loading State For #{@id}: #{si.join(';')}"}
         @cur_season = si[0].to_i
         @cur_episode = si[1].to_i
-        @logger.FTRACE {LEAVE}
+        @logger.ftrace {'LEAVE'}
         nil
     end
 
     def get_state
-        @logger.FTRACE {ENTER}
+        @logger.ftrace {'ENTER'}
         @logger.debug {"State For #{@id}: #{@cur_season};#{@cur_episode}"}
         ret = "#{@cur_season};#{@cur_episode}"
-        @logger.FTRACE {LEAVE}
+        @logger.ftrace {'LEAVE'}
         ret
     end
 
