@@ -35,7 +35,7 @@ fi
 
 mkdir -p $1/bin
 mkdir -p $1/share/rrssdl
-cp *.rb rrssdl rrssdlrc README CHANGELOG LICENSE $1/share/rrssdl
+cp *.rb rrssdl log4r_config.xml rrssdlrc README CHANGELOG LICENSE $1/share/rrssdl
 cat > $1/bin/rrssdl <<EOF
 #!/bin/bash
 
