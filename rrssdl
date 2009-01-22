@@ -53,7 +53,12 @@ class RubyRssDownloader
 
     def initialize(args)
         begin
-            Configurator.load_xml_file('log4r_config.xml')
+            @logger = nil
+            if File.exist?('log4r_config.xml')
+                Configurator.load_xml_file('log4r_config.xml')
+            else
+                warn('*** WARNING: log4r_config.xml not found')
+            end
             @logger = Logger["screen::file"].nil? ? Logger.root : Logger["screen::file"]
             @logger.ftrace {'ENTER'}
             @mut = Mutex.new
@@ -101,7 +106,11 @@ EOF
                 end
             end.parse!(args)
         rescue => e
-            @logger.error {"Option Parser Error: #{e}"}
+            if @logger.nil?
+                warn("Option Parser Error: #{e}")
+            else
+                @logger.error {"Option Parser Error: #{e}"}
+            end
         end
 
         @conf = ConfigFile.new(self)
