@@ -121,6 +121,8 @@ class Feed
             @main.mut.synchronize { Timeout::timeout(@timeout) { refresh_feed } }
         rescue => e
             @logger.error {"RSS Feed Refresh Error: #{e}"}
+        rescue Timeout::Error => e
+            @logger.error {"RSS Feed Refresh Error: #{e}"}
         end
         @logger.ftrace {'LEAVE'}
         nil
