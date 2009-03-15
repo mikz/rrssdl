@@ -44,7 +44,7 @@ class Show
         @season = season.to_i
         # episodes is a list of episodes that have been downloaded, we must convert each string to an int with map
         @episodes = Array.new
-        min_episode.to_i.downto(1) { |i| @episodes.unshift(i) }
+        min_episode.to_i.downto(1) { |i| @episodes.unshift(i.to_i) }
         if opts.nil?
             raise 'Catastrophic Failure!'
         else
@@ -96,8 +96,8 @@ class Show
             else
                 @logger.debug {"#{id} Matches #{title}"}
                 # check if either we are in the same season and we haven't downloaded the provided episode, or if a new season has started
-                if ((m[1].to_i == @season and not @episodes.include?(m[2].to_i)) or m[1].to_i > @season)
-                    @logger.info {"Found New Show For #{@id}: Season #{m[1]}, Episode #{m[2]}"}
+                if ((m[1].to_i == @season.to_i and not @episodes.include?(m[2].to_i)) or m[1].to_i > @season.to_i)
+                    @logger.info {"Found New Show For #{@id}: Season #{m[1]}, Episode #{m[2]} (#{@season}:#{@episodes.join(',')})"}
                     # all good, return the season and episode
                     ret = [m[1].to_i, m[2].to_i]
                 else
@@ -163,8 +163,8 @@ class Show
                 review = true
             # otherwise, everything is good.  set the season and add the episode
             else
-                @season = ep_info[0]
-                @episodes.push(ep_info[1]).sort!
+                @season = ep_info[0].to_i
+                @episodes.push(ep_info[1].to_i).sort!
                 dlpath = File.join(File.expand_path(conf['download_path']), "#{i.title.gsub(/[^\w]/, '_').gsub(/_+/, '_')}.torrent")
                 @logger.notice {"Show '#{i.title}' has a new epidsode ready for download"}
             end
@@ -210,7 +210,7 @@ class Show
         return if si.length != 2
         @logger.debug {"Loading State For #{@id}: #{si.join(';')}"}
         @season = si[0].to_i
-        @episodes = si[1].split(/,/)
+        @episodes = si[1].split(/,/).map { |e| e.to_i }.uniq
         @logger.ftrace {'LEAVE'}
         nil
     end
