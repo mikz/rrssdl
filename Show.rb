@@ -35,7 +35,7 @@ include Log4r
 class Show
     attr_accessor :id, :regex, :season, :episodes, :postdlcmd, :feeds
 
-    def initialize(main, id, regex, season, episodes, opts)
+    def initialize(main, id, regex, season, min_episode, opts)
         @logger = Logger["screen::file"].nil? ? Logger.root : Logger["screen::file"]
         @logger.ftrace {'ENTER'}
         @main = main
@@ -43,7 +43,8 @@ class Show
         @regex = regex
         @season = season.to_i
         # episodes is a list of episodes that have been downloaded, we must convert each string to an int with map
-        @episodes = episodes.split(/,/).map { |e| e.to_i }
+        @episodes = Array.new
+        min_episode.to_i.downto(1) { |i| @episodes.unshift(i) }
         if opts.nil?
             raise 'Catastrophic Failure!'
         else
