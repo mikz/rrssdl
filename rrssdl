@@ -7,36 +7,36 @@ All rights reserved.
 Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
-    * Redistributions of source code must retain the above copyright notice, 
+    * Redistributions of source code must retain the above copyright notice,
       this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright notice, 
-      this list of conditions and the following disclaimer in the documentation 
+    * Redistributions in binary form must reproduce the above copyright notice,
+      this list of conditions and the following disclaimer in the documentation
       and/or other materials provided with the distribution.
     * Neither the name of the DHX Software nor the names of its contributors may
-      be used to endorse or promote products derived from this software without 
+      be used to endorse or promote products derived from this software without
       specific prior written permission.
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR 
-ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; 
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON 
-ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 =end
 
 require 'optparse'
 require 'thread'
-require 'log4r/configurator'
 
 require 'ConfigFile.rb'
 require 'Show.rb'
 require 'Feed.rb'
 
 require 'log4r'
+require 'log4r/configurator'
 include Log4r
 
 module Kernel
@@ -49,7 +49,7 @@ end
 class RubyRssDownloader
     attr_reader :logger, :conf, :shows, :feeds, :mut, :rxSeasonEp, :rxReject, :torTimeout
 
-    $VERSION = '0.3b'
+    $VERSION = '0.4b'
 
     def initialize(args)
         begin
@@ -80,7 +80,7 @@ Options:
     -D | --daemon       run as a daemon (SIGINT exist, SIGHUP reloads config)
 EOF
 
-                opts.on('-h', '--help') do 
+                opts.on('-h', '--help') do
                     puts opts.banner
                     exit(0)
                 end
@@ -96,7 +96,7 @@ EOF
                     params['quiet'] = true
                 end
 
-                opts.on('-c', '--config [ARG]') do |c| 
+                opts.on('-c', '--config [ARG]') do |c|
                     params['file'] = c
                     @logger.info {"Config Path = #{c}"}
                 end
@@ -118,14 +118,6 @@ EOF
 
         init_settings
         @logger.ftrace {'LEAVE'}
-    end
-
-    def te
-        @logger.ftrace {"ENTER '#{methname}'"}
-    end
-
-    def tl
-        @logger.ftrace {"LEAVE '#{methname}'"}
     end
 
     def init_settings
@@ -155,7 +147,7 @@ EOF
             @shows[s] = Show.new(self, s, si.shift, si.shift, si.shift, si)
             @logger.debug(@shows[s].to_s.strip)
         end
-        
+
         @rxSeasonEp = conf.get_list('season_ep_regex')
         @rxReject = conf.get_list('reject_regex')
         @torTimeout = conf.has_key?('torrent_dl_timeout_seconds') ? conf['torrent_dl_timeout_seconds'].to_i : 60
@@ -181,7 +173,7 @@ EOF
         @state.each_key do |k|
             next unless @shows.has_key?(k)
             si = @state.get_list(k)
-            @logger.debug {"Loading State Item: #{k} = #{si}"}
+            @logger.debug {"Loading State Item: #{k} = #{si.join(';')}"}
             @shows[k].load_state(si)
         end
         @logger.ftrace {'LEAVE'}
@@ -219,14 +211,15 @@ EOF
             @logger.notice {'Exiting...'}
             exit(0)
         end
-        
+
         # catch SIGHUP
         Kernel.trap('HUP') do
-            @logger.notice {'Reloading Config...'}
+            save_state
             # kill all feed timers
             @feeds.each_value do |f|
                 f.enabled = false
             end
+            @logger.notice {'Reloading Config...'}
             @conf.read_file
             init_settings
             refresh_feeds

@@ -5,24 +5,24 @@ All rights reserved.
 Redistribution and use in source and binary forms, with or without modification,
 are permitted provided that the following conditions are met:
 
-    * Redistributions of source code must retain the above copyright notice, 
+    * Redistributions of source code must retain the above copyright notice,
       this list of conditions and the following disclaimer.
-    * Redistributions in binary form must reproduce the above copyright notice, 
-      this list of conditions and the following disclaimer in the documentation 
+    * Redistributions in binary form must reproduce the above copyright notice,
+      this list of conditions and the following disclaimer in the documentation
       and/or other materials provided with the distribution.
     * Neither the name of the DHX Software nor the names of its contributors may
-      be used to endorse or promote products derived from this software without 
+      be used to endorse or promote products derived from this software without
       specific prior written permission.
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
-ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED 
-WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR 
-ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
-(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; 
-LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON 
-ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT 
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS 
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 =end
 
@@ -33,38 +33,35 @@ require 'log4r'
 include Log4r
 
 class Show
-    attr_accessor :id, :regex, :min_season, :min_episode, :postdlcmd, :feeds, :cur_season, :cur_episode
+    attr_accessor :id, :regex, :season, :episodes, :postdlcmd, :feeds
 
-    def initialize(main, id, regex, min_season, min_episode, opts)
+    def initialize(main, id, regex, season, episodes, opts)
         @logger = Logger["screen::file"].nil? ? Logger.root : Logger["screen::file"]
         @logger.ftrace {'ENTER'}
         @main = main
         @id = id
         @regex = regex
-        @min_season = @cur_season = min_season.to_i
-        @min_episode = @cur_episode = min_episode.to_i
+        @season = season.to_i
+        # episodes is a list of episodes that have been downloaded, we must convert each string to an int with map
+        @episodes = episodes.split(/,/).map { |e| e.to_i }
         if opts.nil?
             raise 'Catastrophic Failure!'
         else
+            # add post download command if it exists in opts
             @postdlcmd = opts.length >= 1 ? opts.shift : []
             @postdlcmd = nil if @postdlcmd.empty?
+            # build list of feeds from opts if they exist
             @feeds = opts.empty? ? nil : opts.map { |f| main.feeds[f] }.compact
         end
         @logger.ftrace {'LEAVE'}
     end
 
-    def te
-        @logger.ftrace {"ENTER '#{methname}'"}
-    end
-
-    def tl
-        @logger.ftrace {"LEAVE '#{methname}'"}
-    end
-
+    # utility function to grab
     def conf
         @main.conf
     end
 
+    # check if this show this show is only part of a specific feed or feeds
     def belongs_to?(feed)
         @logger.ftrace {'ENTER'}
         @logger.debug {"Checking If Feed #{feed.id} Belongs to #{@id}"}
@@ -73,6 +70,7 @@ class Show
         ret
     end
 
+    # perform a generic regex match on the provided string
     def rxmatch(rx, string)
         @logger.ftrace {'ENTER'}
         @logger.debug {"Matching '#{string}' with regex '#{rx}'"}
@@ -81,21 +79,28 @@ class Show
         ret
     end
 
+    # check if the provided title is considered a new show (something that has not yet been downloaded)
     def new_show?(title)
         @logger.ftrace {'ENTER'}
         ret = nil
         @logger.debug {"Checking If '#{title}' Is A New Show"}
+        # we have to check each of the season/ep regex strings provided in the config file
         @main.rxSeasonEp.each do |rx|
             m = rxmatch(rx, title)
+            # if m is nil then there was no match
             if m.nil?
                 @logger.debug {"#{id} didn't match #{title}"}
+            # if we did match, then we must extract the season/ep data
+            # m[1] = season, m[2] = episode
             else
                 @logger.debug {"#{id} Matches #{title}"}
-                if  (m[1].to_i == @cur_season and m[2].to_i > @cur_episode) or m[1].to_i > @cur_season
+                # check if either we are in the same season and we haven't downloaded the provided episode, or if a new season has started
+                if ((m[1].to_i == @season and not @episodes.include?(m[2].to_i)) or m[1].to_i > @season)
                     @logger.info {"Found New Show For #{@id}: Season #{m[1]}, Episode #{m[2]}"}
-                    ret = m[1,2]
+                    # all good, return the season and episode
+                    ret = [m[1].to_i, m[2].to_i]
                 else
-                    @logger.debug {"'#{title}' Is Older Than Season #{@cur_season}, Episode #{@cur_episode}"}
+                    @logger.debug {"'#{title}' Is Old (S#{sprintf("%02d", @season)}, E:#{@episodes.join(',')})"}
                     ret = false
                 end
             end
@@ -104,7 +109,8 @@ class Show
         ret
     end
 
-    def reject(title)
+    # check if title should be rejected based on the reject regex strings
+    def reject?(title)
         @logger.ftrace {'ENTER'}
         ret = false
         @logger.debug {"Checking if '#{title}' should be rejected"}
@@ -120,38 +126,49 @@ class Show
         ret
     end
 
+    # this is the main function that matches an input show title to *THIS* show object
+    # i = feed item
     def match(i)
         @logger.ftrace {'ENTER'}
         ret = nil
         @logger.debug {"Matching '#{i.title}' With '#{@regex}'"}
-        m = Regexp.new(@regex, Regexp::IGNORECASE).match(i.title)
+        #m = Regexp.new(@regex, Regexp::IGNORECASE).match(i.title)
+        m = rxmatch(@regex, i.title)
+        # we didn't match
         if m.nil?
             @logger.debug {"#{@id} doesn't match"}
             ret = nil
+        # we matched, so now we have to do the successful match logic
         else
             @logger.debug {"#{@id} matches '#{i.title}'"}
+            # first check if the show is new
             ep_info = new_show?(i.title)
             dlpath = nil
             review = false
             dl = true
+            # if it is old, then we have nothing to do
             if ep_info == false
                 @logger.info {"#{i.title} is old, skipping"}
                 ret = nil
+            # show's title doesn't have season/ep info, we download it anyways, but to the review dir
             elsif ep_info.nil?
                 @logger.warn {"Couldn't Determin Season and Episode Info For '#{i.title}'"}
                 dlpath = File.join(File.expand_path(conf['download_path_review']), "REVIEW-#{i.title.gsub(/[^\w]/, '_').gsub(/_+/, '_')}.torrent")
                 review = true
-            elsif reject(i.title)
+            # make sure the show shouldn't be rejected, if it is a reject we still download it to the review dir
+            elsif reject?(i.title)
                 @logger.notice {"'#{i.title}' Was Rejected"}
                 dlpath = File.join(File.expand_path(conf['download_path_review']), "REVIEW-#{i.title.gsub(/[^\w]/, '_').gsub(/_+/, '_')}.torrent")
                 review = true
+            # otherwise, everything is good.  set the season and add the episode
             else
-                @cur_season = ep_info[0].to_i
-                @cur_episode = ep_info[1].to_i
+                @season = ep_info[0]
+                @episodes.push(ep_info[1]).sort!
                 dlpath = File.join(File.expand_path(conf['download_path']), "#{i.title.gsub(/[^\w]/, '_').gsub(/_+/, '_')}.torrent")
                 @logger.notice {"Show '#{i.title}' has a new epidsode ready for download"}
             end
             ret = nil
+            # if dlpath was set, then download that bitch! (with a timeout of course)
             Timeout::timeout(@main.torTimeout) { ret = download(i.link, dlpath) } unless dlpath.nil?
             ret = review ? nil : ret
         end
@@ -159,21 +176,25 @@ class Show
         ret
     end
 
+    # download from uri to dlpath
     def download(uri, dlpath)
         @logger.ftrace {'ENTER'}
         ret = nil
         begin
+            # make sure a file of the same path doesn't already exist
             unless File.size?(dlpath).nil?
                 @logger.warn {"'#{dlpath}' already exists, not downloading"}
                 ret = nil
             end
 
             @logger.notice {"Downloading #{uri} to #{dlpath}"}
-            File.open(dlpath, 'w') do |f| 
+            # download the uri
+            File.open(dlpath, 'w') do |f|
                 f.write(open(uri).read)
-                f.close 
+                f.close
             end
             ret = dlpath
+            @main.save_state
         rescue => e
             @logger.error {"Download Error: #{e}"}
             ret = nil
@@ -182,20 +203,22 @@ class Show
         ret
     end
 
+    # load the state from the provided state item (from the state file)
     def load_state(si)
         @logger.ftrace {'ENTER'}
         return if si.length != 2
         @logger.debug {"Loading State For #{@id}: #{si.join(';')}"}
-        @cur_season = si[0].to_i
-        @cur_episode = si[1].to_i
+        @season = si[0].to_i
+        @episodes = si[1].split(/,/)
         @logger.ftrace {'LEAVE'}
         nil
     end
 
+    # get the state
     def get_state
         @logger.ftrace {'ENTER'}
-        @logger.debug {"State For #{@id}: #{@cur_season};#{@cur_episode}"}
-        ret = "#{@cur_season};#{@cur_episode}"
+        @logger.debug {"State For #{@id}: #{@season};#{@episodes.join(',')}"}
+        ret = "#{@season};#{@episodes.join(',')}"
         @logger.ftrace {'LEAVE'}
         ret
     end
@@ -205,11 +228,11 @@ class Show
 ------------------------
 Show
 ------------------------
-Show    : #{@id}
-Regex   : #{@regex}
-Season  : #{@cur_season} (#{@min_season})
-Episode : #{@cur_episode} (#{@min_episode})
-Feeds   : #{@feeds.nil? ? 'ALL' : @feeds.each_value.map { |f| f.id }.join(', ')}
+Show     : #{@id}
+Regex    : #{@regex}
+Season   : #{@season}
+Episodes : #{@episodes.join(',')}
+Feeds    : #{@feeds.nil? ? 'ALL' : @feeds.each_value.map { |f| f.id }.join(',')}
 ========================
 EOF
     end

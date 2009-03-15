@@ -72,14 +72,6 @@ class Feed
         @logger.ftrace {'LEAVE'}
     end
 
-    def te
-        @logger.ftrace {"ENTER '#{methname}'"}
-    end
-
-    def tl
-        @logger.ftrace {"LEAVE '#{methname}'"}
-    end
-
     def cmd(show)
         @logger.ftrace {'ENTER'}
         if show.postdlcmd.nil?
