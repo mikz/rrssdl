@@ -38,7 +38,7 @@ include Log4r
 class Feed
     attr_accessor :id, :refresh_sec, :uri, :postdlcmd, :enabled
 
-    def initialize(main, id, uri, opts=nil) #opts = refresh_min=30,postdlcmd=nil
+    def initialize(main, id, uri, opts=nil)
         @logger = Logger["screen::file"].nil? ? Logger.root : Logger["screen::file"]
         @main = main
         @logger.ftrace {'ENTER'}
@@ -73,15 +73,16 @@ class Feed
     end
 
     def cmd(show)
+        shellcmd = nil
         @logger.ftrace {'ENTER'}
         if show.postdlcmd.nil?
             shellcmd = @postdlcmd.nil? ? conf['post_dl_cmd'] : @postdlcmd
             shellcmd == '' ? nil : shellcmd
         else
-            show.postdlcmd
+            shellcmd = show.postdlcmd
         end
         @logger.ftrace {'LEAVE'}
-        nil
+        shellcmd
     end
     
     def conf
@@ -145,7 +146,7 @@ EOF
                     dlpath = s.match(i)
                     unless dlpath.nil?
                         shell_cmd = cmd(s)
-                        unless shell_cmd.nil? or shell_cmd == ''
+                        unless shell_cmd.nil? or shell_cmd.empty?
                             torfile = File.basename(dlpath)
                             shell_cmd = shell_cmd.gsub('%T', dlpath).gsub('%t', torfile)
                             @logger.debug {"Executing `#{shell_cmd}`..."}
@@ -169,9 +170,10 @@ EOF
 ------------------------
 Feed
 ------------------------
-Feed    : #{id}
-Refresh : #{refresh_sec} (Seconds)
-URI     : #{uri}
+Feed    : #{@id}
+Refresh : #{@refresh_sec} (Seconds)
+URI     : #{@uri}
+CMD     : #{@postdlcmd.nil? ? 'N/A' : @postdlcmd}
 ========================
 EOF
     end
