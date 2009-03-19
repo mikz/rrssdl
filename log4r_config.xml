@@ -15,16 +15,27 @@
     <outputter name="file" type="FileOutputter" trunc="true">
         <filename>/tmp/rrssdl.log</filename>
         <formatter type="Log4r::PatternFormatter">
-            <pattern>[%6l %d] %c: %M [%t]</pattern>
+            <pattern>[%6l %d]: %M [%t]</pattern>
         </formatter>
     </outputter>
 
     <!-- Loggers -->
+    <!--
+        Note that the screen::file logger is a child of the screen logger.  This means
+        that anything written to screen::file is then passed to screen.  Therefore if 
+        you set screen::file to DEBUG and screen to FTRACE, screen will never receive 
+        any FTRACE log events due to them being dropped by screen::file.  This means 
+        that screen::file must always be a lower level (i.e. FTRACE is lower than 
+        DEBUG) than screen.
+
+        trace="true" is required for the screen::file level unless you remove the 
+        %t flag from the pattern.  %t displays the current file, line, and function.
+    -->
     <logger name="screen" level="NOTICE" additive="false" trace="false">
         <outputter>screen</outputter>
     </logger>
 
-    <logger name="screen::file" level="FTRACE" additive="true" trace="true">
+    <logger name="screen::file" level="DEBUG" additive="true" trace="true">
         <outputter>file</outputter>
     </logger>
 
