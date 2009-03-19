@@ -186,8 +186,7 @@ class Show
             unless File.size?(dlpath).nil?
                 @logger.warn {"'#{dlpath}' already exists, not downloading"}
                 ret = nil
-            end
-
+            else
             @logger.notice {"Downloading #{uri} to #{dlpath}"}
             # download the uri
             File.open(dlpath, 'w') do |f|
@@ -196,6 +195,7 @@ class Show
             end
             ret = dlpath
             @main.save_state
+            end
         rescue => e
             @logger.error {"Download Error: #{e}"}
             ret = nil
@@ -233,6 +233,7 @@ Show     : #{@id}
 Regex    : #{@regex}
 Season   : #{@season}
 Episodes : #{@episodes.join(',')}
+CMD      : #{@postdlcmd.nil? ? 'N/A' : @postdlcmd}
 Feeds    : #{@feeds.nil? ? 'ALL' : @feeds.each_value.map { |f| f.id }.join(',')}
 ========================
 EOF
