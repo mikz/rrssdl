@@ -77,7 +77,7 @@ class Feed
         @logger.ftrace {'ENTER'}
         if show.postdlcmd.nil?
             shellcmd = @postdlcmd.nil? ? conf['post_dl_cmd'] : @postdlcmd
-            shellcmd == '' ? nil : shellcmd
+            shellcmd.empty? ? nil : shellcmd
         else
             shellcmd = show.postdlcmd
         end
