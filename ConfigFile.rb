@@ -41,6 +41,7 @@ class ConfigFile
         @logger = Logger["screen::file"].nil? ? Logger.root : Logger["screen::file"]
         @logger.ftrace {'ENTER'}
         @main = main
+        @conf = Hash.new
         @logger.ftrace {'LEAVE'}
     end
 
