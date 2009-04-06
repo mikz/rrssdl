@@ -41,7 +41,6 @@ class ConfigFile
         @logger = Logger["screen::file"].nil? ? Logger.root : Logger["screen::file"]
         @logger.ftrace {'ENTER'}
         @main = main
-        @conf = Hash.new
         @logger.ftrace {'LEAVE'}
     end
 
@@ -84,6 +83,7 @@ class ConfigFile
 
     def read_file
         begin
+            @conf = Hash.new
             @logger.notice {"Reading Config File '#{@file}'"}
             lineno = 1
             unless File.exists?(File.expand_path(@file))
