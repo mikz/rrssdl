@@ -35,7 +35,7 @@
         <outputter>screen</outputter>
     </logger>
 
-    <logger name="screen::file" level="DEBUG" additive="true" trace="true">
+    <logger name="screen::file" level="INFO" additive="true" trace="true">
         <outputter>file</outputter>
     </logger>
 

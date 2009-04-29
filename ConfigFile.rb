@@ -117,7 +117,7 @@ class ConfigFile
 
     def write_file
         begin
-            @logger.notice {"Writing Config File '#{@file}'"}
+            @logger.info {"Writing Config File '#{@file}'"}
             File.open(File.expand_path(@file), 'w') do |fd|
                 lineno = 1
                 @conf.each do |k,v|

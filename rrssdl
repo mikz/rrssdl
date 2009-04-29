@@ -182,7 +182,7 @@ EOF
 
     def save_state
         @logger.ftrace {'ENTER'}
-        @logger.notice {'Saving State File...'}
+        @logger.info {'Saving State File...'}
         @shows.each_value do |s|
             @logger.debug {"Saving State Item: #{s.id} = #{s.get_state}"}
             @state[s.id] = s.get_state
