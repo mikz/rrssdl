@@ -47,7 +47,7 @@ class ConfigFile
     end
 
     def init_params(params)
-        @logger = Logger["screen::file"].nil? ? Logger.root : Logger["screen::file"]
+        @logger = Logger["screen"].nil? ? Logger.root : Logger["screen"]
         @file = params['file']
 
         @logger.debug {"Applying: #{params.each_key.map { |k| "#{k} => #{params[k]}" }.join(', ')}"}

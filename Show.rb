@@ -128,6 +128,19 @@ class Show
         ret
     end
 
+    def proper?(title)
+        @logger.ftrace {'ENTER'}
+        ret = nil
+        @logger.info {'Checking for PROPER release'}
+        if conf.has_key?('proper_override') and title.upcase.include?('PROPER')
+            ret = true
+        else
+            ret = false
+        end
+        @logger.ftrace{'LEAVE'}
+        ret
+    end
+
     # this is the main function that matches an input show title to *THIS* show object
     # i = feed item
     def match(i)
@@ -161,8 +174,14 @@ class Show
             dl = true
             # if it is old, then we have nothing to do
             if ep_info == false
-                @logger.info {"#{title} is old, skipping"}
-                ret = nil
+                # download anyways if we want to override proper releases
+                if proper?(title)
+                    @logger.notice {"#{title} is a PROPER release, downloading even though it is old"}
+                    dlpath = File.join(File.expand_path(conf['download_path']), "#{title.gsub(/[^\w]/, '_').gsub(/_+/, '_')}.torrent")
+                else
+                    @logger.info {"#{title} is old, skipping"}
+                    ret = nil
+                end
             # show's title doesn't have season/ep info, we download it anyways, but to the review dir
             elsif ep_info.nil?
                 @logger.warn {"Couldn't Determin Season and Episode Info For '#{title}'"}

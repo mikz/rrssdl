@@ -5,6 +5,10 @@
 # Daemon mode
 #daemon = true
 
+# PROPER releases override
+# -- downloads an old ep if it is a PROPER release
+proper_override = true
+
 # state file keeps track of what episode each id is on
 state_file = ~/.rrssdlstate
 # where to put downloaded torrent files
