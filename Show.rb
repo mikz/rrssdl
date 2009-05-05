@@ -36,7 +36,8 @@ class Show
     attr_accessor :id, :regex, :season, :episodes, :postdlcmd, :feeds
 
     def initialize(main, id, regex, season, min_episode, opts)
-        @logger = Logger["screen::file"].nil? ? Logger.root : Logger["screen::file"]
+        #@logger = Logger["screen::file"].nil? ? Logger.root : Logger["screen::file"]
+        @logger = main.logger
         @logger.ftrace {'ENTER'}
         @main = main
         @id = id
@@ -131,47 +132,55 @@ class Show
     # i = feed item
     def match(i)
         @logger.ftrace {'ENTER'}
+        ret = review = nil
+        dlpath, review = match_title(i.title)
+        # if dlpath was set, then download that bitch! (with a timeout of course)
+        Timeout::timeout(@main.torTimeout) { ret = download(i.link, dlpath) } unless dlpath.nil?
+        ret = review ? nil : ret
+        @logger.ftrace {'LEAVE'}
+        ret
+    end
+
+    def match_title(title)
+        @logger.ftrace {'ENTER'}
         ret = nil
-        @logger.debug {"Matching '#{i.title}' With '#{@regex}'"}
-        #m = Regexp.new(@regex, Regexp::IGNORECASE).match(i.title)
-        m = rxmatch(@regex, i.title)
+        @logger.debug {"Matching '#{title}' With '#{@regex}'"}
+        #m = Regexp.new(@regex, Regexp::IGNORECASE).match(title)
+        m = rxmatch(@regex, title)
         # we didn't match
         if m.nil?
             @logger.debug {"#{@id} doesn't match"}
             ret = nil
         # we matched, so now we have to do the successful match logic
         else
-            @logger.debug {"#{@id} matches '#{i.title}'"}
+            @logger.debug {"#{@id} matches '#{title}'"}
             # first check if the show is new
-            ep_info = new_show?(i.title)
+            ep_info = new_show?(title)
             dlpath = nil
             review = false
             dl = true
             # if it is old, then we have nothing to do
             if ep_info == false
-                @logger.info {"#{i.title} is old, skipping"}
+                @logger.info {"#{title} is old, skipping"}
                 ret = nil
             # show's title doesn't have season/ep info, we download it anyways, but to the review dir
             elsif ep_info.nil?
-                @logger.warn {"Couldn't Determin Season and Episode Info For '#{i.title}'"}
-                dlpath = File.join(File.expand_path(conf['download_path_review']), "REVIEW-#{i.title.gsub(/[^\w]/, '_').gsub(/_+/, '_')}.torrent")
+                @logger.warn {"Couldn't Determin Season and Episode Info For '#{title}'"}
+                dlpath = File.join(File.expand_path(conf['download_path_review']), "REVIEW-#{title.gsub(/[^\w]/, '_').gsub(/_+/, '_')}.torrent")
                 review = true
             # make sure the show shouldn't be rejected, if it is a reject we still download it to the review dir
-            elsif reject?(i.title)
-                @logger.notice {"'#{i.title}' Was Rejected"}
-                dlpath = File.join(File.expand_path(conf['download_path_review']), "REVIEW-#{i.title.gsub(/[^\w]/, '_').gsub(/_+/, '_')}.torrent")
+            elsif reject?(title)
+                @logger.notice {"'#{title}' Was Rejected"}
+                dlpath = File.join(File.expand_path(conf['download_path_review']), "REVIEW-#{title.gsub(/[^\w]/, '_').gsub(/_+/, '_')}.torrent")
                 review = true
             # otherwise, everything is good.  set the season and add the episode
             else
                 @season = ep_info[0].to_i
                 @episodes.push(ep_info[1].to_i).sort!
-                dlpath = File.join(File.expand_path(conf['download_path']), "#{i.title.gsub(/[^\w]/, '_').gsub(/_+/, '_')}.torrent")
-                @logger.notice {"Show '#{i.title}' has a new epidsode ready for download"}
+                dlpath = File.join(File.expand_path(conf['download_path']), "#{title.gsub(/[^\w]/, '_').gsub(/_+/, '_')}.torrent")
+                @logger.notice {"Show '#{title}' has a new epidsode ready for download"}
             end
-            ret = nil
-            # if dlpath was set, then download that bitch! (with a timeout of course)
-            Timeout::timeout(@main.torTimeout) { ret = download(i.link, dlpath) } unless dlpath.nil?
-            ret = review ? nil : ret
+            ret = [dlpath, review]
         end
         @logger.ftrace {'LEAVE'}
         ret

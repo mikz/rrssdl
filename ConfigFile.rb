@@ -38,7 +38,8 @@ class ConfigFile
     $kvpair  = Regexp.new('^\s*([^\+=]+)(\+?=)\s*(.*)$')
 
     def initialize(main)
-        @logger = Logger["screen::file"].nil? ? Logger.root : Logger["screen::file"]
+        #@logger = Logger["screen::file"].nil? ? Logger.root : Logger["screen::file"]
+        @logger = main.logger
         @logger.ftrace {'ENTER'}
         @main = main
         @conf = Hash.new

@@ -59,8 +59,7 @@ class RubyRssDownloader
             else
                 warn('*** WARNING: log4r_config.xml not found')
             end
-            @logger = Logger["screen::file"].nil? ? Logger.root : Logger["screen::file"]
-            @logger.ftrace {'ENTER'}
+            @logger = Logger["screen"].nil? ? Logger.root : Logger["screen"]
             @mut = Mutex.new
             params = {'file' => '~/.rrssdlrc'}
 
@@ -78,11 +77,16 @@ Options:
     -q | --quiet        disable all logging to screen (log file is still used if defined)
     -c | --config path  set config file using path (default is ~/.rrssdlrc)
     -D | --daemon       run as a daemon (SIGINT exist, SIGHUP reloads config)
+    -t | --test         test an input string
 EOF
 
                 opts.on('-h', '--help') do
                     puts opts.banner
                     exit(0)
+                end
+                opts.on('-t', '--test [ARG]') do |s|
+                    @test = s
+                    puts "Testing with input '#{s}'"
                 end
                 opts.on('-d', '--debug') do
                     params['debug'] = true
@@ -113,6 +117,11 @@ EOF
             end
         end
 
+        if @test.nil?
+            @logger = Logger["screen::file"].nil? ? Logger.root : Logger["screen::file"]
+        else
+            @logger = Logger["screen"].nil? ? Logger.root : Logger["screen"]
+        end
         @conf = ConfigFile.new(self)
         @conf.init_params(params)
 
@@ -223,6 +232,15 @@ EOF
             @conf.read_file
             init_settings
             refresh_feeds
+        end
+
+        unless @test.nil?
+            @logger.level = DEBUG
+            @shows.each_value do |s|
+                dlpath, review = s.match_title(@test)
+                @logger.notice { "#{@test} would have resulted in a download of '#{dlpath}'" } unless dlpath.nil?
+            end
+            exit
         end
 
         # force initial refresh
