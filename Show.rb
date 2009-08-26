@@ -217,6 +217,8 @@ class Show
             else
             @logger.notice {"Downloading #{uri} to #{dlpath}"}
             # download the uri
+            uri = URI.escape(uri, '[]')
+            @logger.info {"Escaped URI => #{uri}"}
             File.open(dlpath, 'w') do |f|
                 f.write(open(uri).read)
                 f.close
