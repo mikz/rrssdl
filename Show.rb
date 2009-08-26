@@ -73,10 +73,10 @@ class Show
     end
 
     # perform a generic regex match on the provided string
-    def rxmatch(rx, string)
+    def rxmatch(rx, string, cs = nil)
         @logger.ftrace {'ENTER'}
         @logger.debug {"Matching '#{string}' with regex '#{rx}'"}
-        ret = Regexp.new(rx, Regexp::IGNORECASE).match(string)
+        ret = cs.nil? ? Regexp.new(rx, Regexp::IGNORECASE).match(string) : Regexp.new(rx).match(string)
         @logger.ftrace {'LEAVE'}
         ret
     end
@@ -105,6 +105,7 @@ class Show
                     @logger.debug {"'#{title}' Is Old (S#{sprintf("%02d", @season)}, E:#{@episodes.join(',')})"}
                     ret = false
                 end
+                break
             end
         end
         @logger.ftrace {'LEAVE'}
@@ -121,6 +122,7 @@ class Show
             unless m.nil?
                 @logger.debug {"'#{title}' is rejected"}
                 ret = true
+                break
             end
         end
 

@@ -156,6 +156,7 @@ EOF
                             @logger.debug {"Returned [#{result}]"} unless result.nil?
                         end
                     end
+                    break
                 else
                     @logger.debug {"#{s.id} Isn't Paired With #{@id}"}
                 end

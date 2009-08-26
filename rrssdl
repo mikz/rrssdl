@@ -238,7 +238,10 @@ EOF
             @logger.level = DEBUG
             @shows.each_value do |s|
                 dlpath, review = s.match_title(@test)
-                @logger.notice { "#{@test} would have resulted in a download of '#{dlpath}'" } unless dlpath.nil?
+                unless dlpath.nil?
+                    @logger.notice { "#{@test} would have resulted in a download of '#{dlpath}'" }
+                    break
+                end
             end
             exit
         end
