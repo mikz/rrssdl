@@ -66,7 +66,7 @@ class Feed
                     sleep(@refresh_sec)
                     sync_refresh_feed
                 rescue => e
-                    @logger.error {"Feed Error: #{e}"}
+                    @logger.error {"RSS Feed Error (#{@id}): #{e}"}
                 end
             end
         end
@@ -101,7 +101,7 @@ class Feed
             raise "Unable to parse RSS Feed for #{@id} (#{@uri})" if feed.nil?
             ret = feed
         rescue => e
-            @logger.error {"RSS Feed Error: #{e}"}
+            @logger.error {"RSS Feed Error (#{@id}): #{e}"}
             ret = nil
         end
         @logger.ftrace {'LEAVE'}
@@ -114,9 +114,9 @@ class Feed
             @logger.debug {"Performing Syncronized Feed Refresh"}
             @main.mut.synchronize { Timeout::timeout(@timeout) { refresh_feed } }
         rescue => e
-            @logger.error {"RSS Feed Refresh Error: #{e}"}
+            @logger.error {"RSS Feed Refresh Error (#{@id}): #{e}"}
         rescue Timeout::Error => e
-            @logger.error {"RSS Feed Refresh Error: #{e}"}
+            @logger.error {"RSS Feed Refresh Error (#{@id}): #{e}"}
         end
         @logger.ftrace {'LEAVE'}
         nil
@@ -146,6 +146,7 @@ EOF
                     @logger.debug {"#{s.id} Is Paired With #{@id}"}
                     dlpath = s.match(i)
                     unless dlpath.nil?
+                        @logger.notice {"(#{@id}) Downloaded #{dlpath} (#{s.id})"}
                         shell_cmd = cmd(s)
                         unless shell_cmd.nil? or shell_cmd.empty?
                             torfile = File.basename(dlpath)
@@ -156,7 +157,6 @@ EOF
                             @logger.debug {"Returned [#{result}]"} unless result.nil?
                         end
                     end
-                    break
                 else
                     @logger.debug {"#{s.id} Isn't Paired With #{@id}"}
                 end

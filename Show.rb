@@ -217,7 +217,7 @@ class Show
                 @logger.warn {"'#{dlpath}' already exists, not downloading"}
                 ret = nil
             else
-            @logger.notice {"Downloading #{uri} to #{dlpath}"}
+            @logger.debug {"Downloading #{uri} to #{dlpath}"}
             # download the uri
             uri = URI.escape(uri, '[]')
             @logger.info {"Escaped URI => #{uri}"}

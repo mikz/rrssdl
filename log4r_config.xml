@@ -8,7 +8,7 @@
     <!-- Outputters -->
     <outputter name="screen" type="StdoutOutputter">
         <formatter type="Log4r::PatternFormatter">
-            <pattern>%M</pattern>
+            <pattern>[%d] %M</pattern>
         </formatter>
     </outputter>
 
