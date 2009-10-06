@@ -132,7 +132,7 @@ class Show
     def proper?(title)
         @logger.ftrace {'ENTER'}
         ret = nil
-        @logger.info {'Checking for PROPER release'}
+        @logger.debug {'Checking for PROPER release'}
         if conf.has_key?('proper_override') and title.upcase.include?('PROPER')
             ret = true
         else

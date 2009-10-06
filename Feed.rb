@@ -94,7 +94,7 @@ class Feed
         ret = nil
         begin
             content = ''
-            @logger.info {"Reading RSS Feed for #{@id} (#{@uri})"}
+            @logger.debug {"Reading RSS Feed for #{@id} (#{@uri})"}
             open(@uri) { |r| content = r.read }
             feed = RSS::Parser.parse(content, false)
             raise "Unable to parse RSS Feed for #{@id} (#{@uri})" if feed.nil?
