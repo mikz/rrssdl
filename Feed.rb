@@ -39,7 +39,6 @@ class Feed
     attr_accessor :id, :refresh_sec, :uri, :postdlcmd, :enabled
 
     def initialize(main, id, uri, opts=nil)
-        #@logger = Logger["screen::file"].nil? ? Logger.root : Logger["screen::file"]
         @logger = main.logger
         @main = main
         @logger.ftrace {'ENTER'}

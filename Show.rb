@@ -36,7 +36,6 @@ class Show
     attr_accessor :id, :regex, :season, :episodes, :postdlcmd, :feeds
 
     def initialize(main, id, regex, season, min_episode, opts)
-        #@logger = Logger["screen::file"].nil? ? Logger.root : Logger["screen::file"]
         @logger = main.logger
         @logger.ftrace {'ENTER'}
         @main = main
@@ -151,7 +150,17 @@ class Show
         dlpath, review = match_title(i.title)
         # if dlpath was set, then download that bitch! (with a timeout of course)
         Timeout::timeout(@main.torTimeout) { ret = download(i.link, dlpath) } unless dlpath.nil?
-        ret = review ? nil : ret
+        # precedence to the download return state, then the review state
+        ret = ret.nil? ? nil : review ? nil : ret
+        # if nothing has gone wrong, update our status
+        unless ret.nil?
+            if (ep_info[0].to_i > @season)
+                # new season detected, clear the current ep list
+                @episodes.clear
+            end
+            @season = ep_info[0].to_i
+            @episodes.push(ep_info[1].to_i).sort!
+        end
         @logger.ftrace {'LEAVE'}
         ret
     end
@@ -194,14 +203,12 @@ class Show
                 @logger.notice {"'#{title}' Was Rejected"}
                 dlpath = File.join(File.expand_path(conf['download_path_review']), "REVIEW-#{title.gsub(/[^\w]/, '_').gsub(/_+/, '_')}.torrent")
                 review = true
-            # otherwise, everything is good.  set the season and add the episode
+            # otherwise, everything is good.  try and download the file
             else
-                @season = ep_info[0].to_i
-                @episodes.push(ep_info[1].to_i).sort!
                 dlpath = File.join(File.expand_path(conf['download_path']), "#{title.gsub(/[^\w]/, '_').gsub(/_+/, '_')}.torrent")
                 @logger.notice {"Show '#{title}' has a new epidsode ready for download"}
             end
-            ret = [dlpath, review]
+            ret = [dlpath, review, ep_info]
         end
         @logger.ftrace {'LEAVE'}
         ret
