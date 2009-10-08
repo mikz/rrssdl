@@ -147,7 +147,7 @@ class Show
     def match(i)
         @logger.ftrace {'ENTER'}
         ret = review = nil
-        dlpath, review = match_title(i.title)
+        dlpath, review, ep_info = match_title(i.title)
         # if dlpath was set, then download that bitch! (with a timeout of course)
         Timeout::timeout(@main.torTimeout) { ret = download(i.link, dlpath) } unless dlpath.nil?
         # precedence to the download return state, then the review state
