@@ -169,7 +169,6 @@ class Show
         @logger.ftrace {'ENTER'}
         ret = nil
         @logger.debug {"Matching '#{title}' With '#{@regex}'"}
-        #m = Regexp.new(@regex, Regexp::IGNORECASE).match(title)
         m = rxmatch(@regex, title)
         # we didn't match
         if m.nil?
@@ -179,7 +178,7 @@ class Show
         else
             @logger.debug {"#{@id} matches '#{title}'"}
             # first check if the show is new
-            ep_info = new_show?(title)
+            ep_info = new_show?(title.gsub(m[0], ''))
             dlpath = nil
             review = false
             dl = true
