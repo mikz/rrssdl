@@ -178,7 +178,7 @@ class Show
         else
             @logger.debug {"#{@id} matches '#{title}'"}
             # first check if the show is new
-            ep_info = new_show?(title.gsub(m[0], ''))
+            ep_info = new_show?(title.gsub(m[m.length - 1], ''))
             dlpath = nil
             review = false
             dl = true
