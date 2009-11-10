@@ -90,16 +90,20 @@ class Show
             m = rxmatch(rx, title)
             # if m is nil then there was no match
             if m.nil?
-                @logger.debug {"#{id} didn't match #{title}"}
+                @logger.debug {"#{id} didn't match #{title} (#{rx})"}
             # if we did match, then we must extract the season/ep data
             # m[1] = season, m[2] = episode
             else
-                @logger.debug {"#{id} Matches #{title}"}
+                @logger.debug {"#{id} Matches #{title} (#{rx})"}
+                # remove non numeric characters from season and episode
+                season = m[1].gsub(/[^0-9]/, '').to_i
+                episode = m[2].gsub(/[^0-9]/, '').to_i
                 # check if either we are in the same season and we haven't downloaded the provided episode, or if a new season has started
-                if ((m[1].to_i == @season.to_i and not @episodes.include?(m[2].to_i)) or m[1].to_i > @season.to_i)
-                    @logger.info {"Found New Show For #{@id}: Season #{m[1]}, Episode #{m[2]} (#{@season}:#{@episodes.join(',')})"}
+                @logger.debug {"'#{title}' is season #{season}, episode #{episode}"}
+                if ((season == @season.to_i and not @episodes.include?(episode)) or season > @season.to_i)
+                    @logger.info {"Found New Show For #{@id}: Season #{season}, Episode #{episode} (#{@season}:#{@episodes.join(',')})"}
                     # all good, return the season and episode
-                    ret = [m[1].to_i, m[2].to_i]
+                    ret = [season, episode]
                 else
                     @logger.debug {"'#{title}' Is Old (S#{sprintf("%02d", @season)}, E:#{@episodes.join(',')})"}
                     ret = false
@@ -160,6 +164,9 @@ class Show
             end
             @season = ep_info[0].to_i
             @episodes.push(ep_info[1].to_i).sort!
+
+            # finally, save the state to disk
+            @main.save_state
         end
         @logger.ftrace {'LEAVE'}
         ret
@@ -194,7 +201,7 @@ class Show
                 end
             # show's title doesn't have season/ep info, we download it anyways, but to the review dir
             elsif ep_info.nil?
-                @logger.warn {"Couldn't Determin Season and Episode Info For '#{title}'"}
+                @logger.warn {"Couldn't Determine Season and Episode Info For '#{title}'"}
                 dlpath = File.join(File.expand_path(conf['download_path_review']), "REVIEW-#{title.gsub(/[^\w]/, '_').gsub(/_+/, '_')}.torrent")
                 review = true
             # make sure the show shouldn't be rejected, if it is a reject we still download it to the review dir
@@ -232,7 +239,6 @@ class Show
                 f.close
             end
             ret = dlpath
-            @main.save_state
             end
         rescue => e
             @logger.error {"Download Error: #{e}"}
