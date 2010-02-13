@@ -161,6 +161,7 @@ EOF
                 end
             end
         end
+        @logger.info { "Feed '#{@id}' Contains\r\n#{feed.items.map { |x| "\t#{x.title}" }.sort.join("\r\n")}" }
         @logger.info {'Done Processing Items'}
         @logger.ftrace {'LEAVE'}
         nil
