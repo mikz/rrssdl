@@ -44,14 +44,7 @@ class LogManager
     $DEFAULT_LOG_CACHE_SIZE = 5
 
     def initialize
-        @logger = nil
-        if File.exist?('log4r_config.xml')
-            Configurator.load_xml_file('log4r_config.xml')
-        else
-            warn('*** WARNING: log4r_config.xml not found')
-        end
-        @logger = Logger["screen"].nil? ? Logger.root : Logger["screen"]
-
+        create
         @hashes = Array.new
         @log_cache_size = $DEFAULT_LOG_CACHE_SIZE
     end
@@ -72,6 +65,22 @@ class LogManager
         @hashes.unshift(hash)
     end
     private :cache
+
+    def create
+        @logger = nil
+        if File.exist?('log4r_config.xml')
+            Configurator.load_xml_file('log4r_config.xml')
+        else
+            warn('*** WARNING: log4r_config.xml not found')
+        end
+        @logger = Logger["screen"].nil? ? Logger.root : Logger["screen"]
+    end
+
+    def reload
+        create
+        conf = ConfigFile.Instance
+        @log_cache_size = conf['log_cache_size'] if conf.has_key?('log_cache_size')
+    end
 
     def ftrace(&block)
         str = yield

@@ -217,6 +217,7 @@ EOF
             @logger.notice {'Reloading Config...'}
             @conf.read_file
             init_settings
+            @logger.reload
             refresh_feeds
         end
 
