@@ -26,9 +26,6 @@ ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 =end
 
-require 'log4r'
-include Log4r
-
 class ConfigFile
     attr_reader :conf
     attr_accessor :file
@@ -37,12 +34,18 @@ class ConfigFile
     $white   = Regexp.new('^\s*$')
     $kvpair  = Regexp.new('^\s*([^\+=]+)(\+?=)\s*(.*)$')
 
-    def initialize(main)
-        @logger = main.logger
+    @@instance = nil
+
+    def initialize()
+        @logger = LogManager.Instance
         @logger.ftrace {'ENTER'}
-        @main = main
         @conf = Hash.new
         @logger.ftrace {'LEAVE'}
+    end
+
+    def ConfigFile.Instance
+        @@instance = new unless @@instance
+        @@instance
     end
 
     def init_params(params)

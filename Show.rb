@@ -29,14 +29,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 require 'open-uri'
 require 'timeout'
 
-require 'log4r'
-include Log4r
-
 class Show
     attr_accessor :id, :regex, :season, :episodes, :postdlcmd, :feeds
 
     def initialize(main, id, regex, season, min_episode, opts)
-        @logger = main.logger
+        @logger = LogManager.Instance
         @logger.ftrace {'ENTER'}
         @main = main
         @id = id
@@ -59,7 +56,7 @@ class Show
 
     # utility function to grab
     def conf
-        @main.conf
+        ConfigFile.Instance
     end
 
     # check if this show this show is only part of a specific feed or feeds

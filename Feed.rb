@@ -32,16 +32,13 @@ require 'rss/1.0'
 require 'rss/2.0'
 require 'thread'
 
-require 'log4r'
-include Log4r
-
 class Feed
     attr_accessor :id, :refresh_sec, :uri, :postdlcmd, :enabled
 
     def initialize(main, id, uri, opts=nil)
-        @logger = main.logger
-        @main = main
+        @logger = LogManager.Instance
         @logger.ftrace {'ENTER'}
+        @main = main
         @id = id
         @uri = uri
         @enabled = true
@@ -86,7 +83,7 @@ class Feed
     end
     
     def conf
-        @main.conf
+        ConfigFile.Instance
     end
 
     def read_feed

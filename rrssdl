@@ -31,35 +31,20 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 require 'optparse'
 require 'thread'
 
+require 'LogManager.rb'
 require 'ConfigFile.rb'
 require 'Show.rb'
 require 'Feed.rb'
 
-require 'log4r'
-require 'log4r/configurator'
-include Log4r
-
-module Kernel
-    private
-    def methname
-        caller[2] =~ /`([^']*)'/ and $1
-    end
-end
-
 class RubyRssDownloader
     attr_reader :logger, :conf, :shows, :feeds, :mut, :rxSeasonEp, :rxReject, :torTimeout
 
-    $VERSION = '0.4b'
+    $VERSION = '0.5b'
 
     def initialize(args)
         begin
-            @logger = nil
-            if File.exist?('log4r_config.xml')
-                Configurator.load_xml_file('log4r_config.xml')
-            else
-                warn('*** WARNING: log4r_config.xml not found')
-            end
-            @logger = Logger["screen"].nil? ? Logger.root : Logger["screen"]
+            @logger = LogManager.Instance
+            @logger.ftrace {'ENTER'}
             @mut = Mutex.new
             params = {'file' => '~/.rrssdlrc'}
 
@@ -122,7 +107,7 @@ EOF
         else
             @logger = Logger["screen"].nil? ? Logger.root : Logger["screen"]
         end
-        @conf = ConfigFile.new(self)
+        @conf = ConfigFile.Instance
         @conf.init_params(params)
 
         init_settings
@@ -176,7 +161,7 @@ EOF
     def load_state
         @logger.ftrace {'ENTER'}
         @logger.notice {'Loading State File...'}
-        @state = ConfigFile.new(self)
+        @state = ConfigFile.new()
         @state.file = @conf['state_file']
         @state.read_file
         @state.each_key do |k|
