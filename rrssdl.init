@@ -1,0 +1,91 @@
+#!/bin/sh
+# This script depends on screen.
+# on ubuntu, put this script in /etc/init.d and rename it to rrssdl
+# then run update-rc.d rrssdl defaults
+# now you can just run service rrssdl [start|stop] to control rrssdl as a service
+# additionally, rrssdl will now start on its own in a screen sessino when your computer boots
+
+# set the user to run rrssdl as (usually yourself) 
+user="user"
+
+# set of options to run with
+options=""
+
+# default directory for screen, needs to be an absolute path
+base="`su -c 'echo $HOME' $user`"
+
+# name of screen session
+srnname="rrssdl"
+
+# file to log to (makes for easier debugging if something goes wrong)
+logfile="/var/log/rrssdl.log"
+
+# update the PATH if your rrssdl is in a non-standard location
+PATH=/usr/bin:/usr/local/bin:/usr/local/sbin:/sbin:/bin:/usr/sbin
+DESC="RSS TV Feed Downloader"
+NAME=rrssdl
+DAEMON=`which $NAME`
+SCRIPTNAME=/etc/init.d/$NAME
+DIR=`dirname $DAEMON`
+
+rm -f "$logfile"
+
+checkcnfg() {
+    exists=0
+    for i in `echo "$PATH" | tr ':' '\n'` ; do
+        if [ -f $i/$NAME ] ; then
+            exists=1
+            break
+        fi
+    done
+    if [ $exists -eq 0 ] ; then
+        echo "cannot find $NAME binary in PATH $PATH" | tee -a "$logfile" >&2
+        exit 3
+    fi
+}
+
+d_start() {
+  [ -d "${base}" ] && cd ${base}
+  stty stop undef && stty start undef
+  su -c "screen -ls | grep -sq "\.${srnname}[[:space:]]" " ${user} || su -c "cd $DIR && screen -dm -S ${srnname} 2>&1" ${user} | tee -a "$logfile" >&2
+  su -c "screen -S "${srnname}" -X screen ./$NAME ${options} 2>&1" ${user} | tee -a "$logfile" >&2
+}
+
+d_stop() {
+    if ! [ -s ${base}/.rrssdl.lock ] ; then
+        return
+    fi
+    pid=`cat ${base}/.rrssdl.lock`
+    if ps -A | grep -sq ${pid}.*rrssdl ; then # make sure the pid doesn't belong to another process
+        kill -s INT ${pid}
+        su -c "screen -S ${srnname} -X quit" ${user} | tee -a "$logfile" >&2
+    fi
+}
+
+checkcnfg
+
+case "$1" in
+  start)
+    echo -n "Starting $DESC: $NAME"
+    d_start
+    echo "."
+    ;;
+  stop)
+    echo -n "Stopping $DESC: $NAME"
+    d_stop
+    echo "."
+    ;;
+  restart|force-reload)
+    echo -n "Restarting $DESC: $NAME"
+    d_stop
+    sleep 1
+    d_start
+    echo "."
+    ;;
+  *)
+    echo "Usage: $SCRIPTNAME {start|stop|restart|force-reload}" >&2
+    exit 1
+    ;;
+esac
+
+exit 0
