@@ -76,7 +76,7 @@ Options:
     -v | --verbose      set verbose mode (blank is ON, default is OFF)
     -q | --quiet        disable all logging to screen (log file is still used if defined)
     -c | --config path  set config file using path (default is ~/.rrssdlrc)
-    -D | --daemon       run as a daemon (SIGINT exist, SIGHUP reloads config)
+    -D | --daemon       run as a daemon (SIGINT exits, SIGHUP reloads config)
     -t | --test         test an input string
 EOF
 
@@ -218,6 +218,7 @@ EOF
         Kernel.trap('INT') do
             save_state
             @logger.notice {'Exiting...'}
+            File.delete(conf['lock_file'])
             exit(0)
         end
 
@@ -251,20 +252,23 @@ EOF
 
         if @conf.has_key?('daemon')
             @logger.notice {'Daemonizing...'}
-            pid = fork do
+            @pid = fork do
                 main_loop
             end
-            if (pid > 0)
-                @logger.notice {"Daemon PID = #{pid}"}
+            if (@pid > 0)
+                write_pid
                 Process.detach(pid)
             end
         else
+            @pid = Process.pid
+            write_pid
             main_loop
         end
         @logger.ftrace {'LEAVE'}
         nil
     end
 
+    # loop that does nothing, each feed has its own refresh timer to auto refresh itself
     def main_loop
         @logger.ftrace {'ENTER'}
         loop do
@@ -272,6 +276,15 @@ EOF
         end
         @logger.ftrace {'LEAVE'}
         nil
+    end
+
+    def write_pid
+        @logger.ftrace {'ENTER'}
+        @logger.notice {"rrssdl PID = #{@pid}"}
+        path = File.expand_path(conf.has_key?('lock_file') ? conf['lock_file'] : '~/.rrssdl.lock')
+        File.open(path, 'w') { |f| f.write(@pid) }
+        conf['lock_file'] = path
+        @logger.ftrace {'LEAVE'}
     end
 end
 
