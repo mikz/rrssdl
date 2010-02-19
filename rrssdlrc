@@ -18,7 +18,7 @@ download_path = /tmp
 download_path_review = /tmp/review
 
 # semi-colon separated list of Season and Episode Regex strings (case insensitive)
-season_ep_regex = [^\w]s(\d+)e(\d+)[^\w];[^\w](\d{1,2})x(\d{1,2})[^\w];[^\w](\d{1,2})(\d{2,2})[^\w]
+season_ep_regex = s(\d+)e(\d+);(\d{1,2}) ?x ?(\d{1,2});(\d{1,2})(\d{2,2})
 
 # semi-colon separated list of regex strings that are used to reject a torrent (case insensitive)
 reject_regex = 720p;1080p
