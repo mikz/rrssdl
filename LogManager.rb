@@ -30,6 +30,8 @@ require 'log4r'
 require 'log4r/configurator'
 include Log4r
 
+require 'ConfigFile.rb'
+
 module Kernel
     private
     def methname
@@ -40,6 +42,7 @@ end
 class LogManager
     private_class_method :new
 
+    @@log4rconfig = 'log4r_config.xml'
     @@instance = nil
     $DEFAULT_LOG_CACHE_SIZE = 5
 
@@ -47,6 +50,14 @@ class LogManager
         create
         @hashes = Array.new
         @log_cache_size = $DEFAULT_LOG_CACHE_SIZE
+    end
+
+    def LogManager.Log4rConfig
+        @@log4rconfig
+    end
+
+    def LogManager.Log4rConfig=(file)
+        @@log4rconfig = file
     end
 
     def LogManager.Instance
@@ -59,7 +70,7 @@ class LogManager
     end
 
     def cache(hash)
-        if @hashes.length >= @log_cache_size
+        while @hashes.length >= @log_cache_size
             @hashes.pop
         end
         @hashes.unshift(hash)
@@ -68,12 +79,12 @@ class LogManager
 
     def create
         @logger = nil
-        if File.exist?('log4r_config.xml')
-            Configurator.load_xml_file('log4r_config.xml')
+        if File.exist?(@@log4rconfig)
+            Configurator.load_xml_file(@@log4rconfig)
         else
-            warn('*** WARNING: log4r_config.xml not found')
+            warn("*** WARNING: #{@@log4rconfig} not found")
         end
-        @logger = Logger["screen"].nil? ? Logger.root : Logger["screen"]
+        @logger = Logger["screen::file"].nil? ? Logger.root : Logger["screen::file"]
     end
 
     def reload
@@ -83,21 +94,11 @@ class LogManager
     end
 
     def ftrace(&block)
-        str = yield
-        hash = str.to_s.hash
-        unless @hashes.include?(hash)
-            @logger.ftrace { str }
-            cache(hash)
-        end
+        @logger.ftrace { yield }
     end
 
     def debug(&block)
-        str = yield
-        hash = str.to_s.hash
-        unless @hashes.include?(hash)
-            @logger.debug { str }
-            cache(hash)
-        end
+        @logger.debug { yield }
     end
 
     def info(&block)
@@ -106,6 +107,9 @@ class LogManager
         unless @hashes.include?(hash)
             @logger.info { str }
             cache(hash)
+        else
+            @logger.debug { "hash found for log string: '#{str}'" }
+            @logger.debug { "'#{hash}' is in {#{@hashes.join(',')}}" }
         end
     end
 
@@ -115,33 +119,21 @@ class LogManager
         unless @hashes.include?(hash)
             @logger.notice { str }
             cache(hash)
+        else
+            @logger.debug { "hash found for log string: '#{str}'" }
+            @logger.debug { "'#{hash}' is in {#{@hashes.join(',')}}" }
         end
     end
 
     def warn(&block)
-        str = yield
-        hash = str.to_s.hash
-        unless @hashes.include?(hash)
-            @logger.warn { str }
-            cache(hash)
-        end
+        @logger.warn { str }
     end
 
     def error(&block)
-        str = yield
-        hash = str.to_s.hash
-        unless @hashes.include?(hash)
-            @logger.error { str }
-            cache(hash)
-        end
+        @logger.error { str }
     end
 
     def fatal(&block)
-        str = yield
-        hash = str.to_s.hash
-        unless @hashes.include?(hash)
-            @logger.fatal { str }
-            cache(hash)
-        end
+        @logger.fatal { str }
     end
 end
