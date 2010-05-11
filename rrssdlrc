@@ -2,44 +2,75 @@
 # the key's existence defines a true value
 # its absence defines a false value
 
-# verbosity of output
-#debug = true
-verbose = true
-
 # Daemon mode
 #daemon = true
 
+# PROPER releases override
+# -- downloads an old ep if it is a PROPER release
 proper_override = true
 
 # state file keeps track of what episode each id is on
-state_file = ./rrssdlstate
-# log output
-log_file = ./rrssdl.log
-
-# where to put downloaded files
-download_path = /tmp/dl
+state_file = ~/.rrssdlstate
+# where to put downloaded torrent files
+download_path = /tmp
 # where to put downloaded files that we couldn't determine the
 # season or episode info for
-download_path_review = /tmp/dl/review
+download_path_review = /tmp/review
 
-# semi-colon seperated list of Season and Episode Regex strings (case insensitive)
+# semi-colon separated list of Season and Episode Regex strings (case insensitive)
 season_ep_regex = s(\d+)e(\d+);(\d{1,2}) ?x ?(\d{1,2});(\d{1,2})(\d{2,2})
 
-# which show id's are enabled.  semi-colon separated
-enabled_show_ids = show_american_dad;show_cleaveland
+# semi-colon separated list of regex strings that are used to reject a torrent (case insensitive)
+reject_regex = 720p;1080p
 
-# The following are simply show_id = regex;min_season;min_episode;[<feed_ids>,...]
+# which show id's are enabled.  semi-colon separated
+enabled_show_ids += show_test;
+
+# The following are simply show_id = regex;min_season;min_episode[;shell_cmd;feed_id1,feed_id2,...]
 show_american_dad = ^american[^\w]dad[^\w];0;0
-show_cleaveland = ^the[^\w]cleveland[^\w]show[^\w];0;0
+show_the_office = ^the[^\w]office[^\w];0;0
+show_30_rock = ^30[^\w]rock[^\w];0;0
+show_batg = ^beauty[^\w]and[^\w]the[^\w]geek[^\w];0;0
+show_las_vegas = ^las[^\w]vegas[^\w];0;0
+show_the_l_word = l[^\w]word[^\w];0;0
+show_himym = ^how[^\w]i[^\w]met[^\w]your[^\w]mother[^\w];0;0
+show_prison_break = ^prison[^\w]break[^\w];0;0
+show_family_guy = ^family[^\w]guy[^\w];0;0
+show_southpark = ^south ?park[^\w];1;1
+show_the_shield = ^the[^\w]shield[^\w];0;0
+show_entourage = ^entourage[^\w];0;0
+show_snl = ^Saturday[^\w]Night[^\w]Live[^\w];0;0
+show_the_tudors = ^the[^\w]tudors[^\w];0;0
+show_whistler = ^whistler[^\w];0;0
+show_weeds = ^weeds[^\w];0;0
+show_nip_tuck = ^nip[^\w]tuck[^\w];0;0
+show_extras = ^extras[^\w];0;0
+show_skins = ^skins[^\w];0;0
+show_underbelly = ^underbelly[^\w];0;0
+show_mad_men = ^Mad[^\w]Men[^\w];0;0
+show_fringe = ^fringe[^\w];1;6
+show_test = ^Numb3rs[^\w];0;0;echo "[show_test] Downloaded %T (%t)"
 
 # which feed id's are enabled.  semi-colon separated
-enabled_feed_ids = feed_test; feed_test2
+enabled_feed_ids = feed_test
 
-# The following are simply feed_id = feed_url;refresh_mins
-feed_test = http://cerberus/r/test.xml;15
-feed_test2 = http://cerberus/r/test2.xml;15
+# The following are simply feed_id = feed_url;[refresh_mins;post_dl_cmd]
+feed_tvrss_combined = http://tvrss.net/feed/combined/;15
+feed_tvrss_unique = http://tvrss.net/feed/unique/;15
+feed_tvrss_eztv = http://tvrss.net/feed/eztv/;15
+feed_tvrss_vtv = http://tvrss.net/feed/vtv/;15
+feed_btchat = http://rss.bt-chat.com/?cat=9;15
+feed_test = http://localhost/test.xml;1;echo "[feed_test] Downloaded %T (%t)"
 
 # how long to wait before aborting a feed refresh
 # default value is whatever the refresh time is set for the particular feed
 feed_timeout_seconds = 60
+
+# how long to wait before aborting a torrent download
+# default value is 60 seconds
+torrent_dl_timeout_seconds = 60
+
+# shell command to run after every download (unless specified for feed explicitly)
+# %t = torrent file, %T = full torrent path
+post_dl_cmd = echo "[GLOBAL] Downloaded [%T] (%t)"
 
