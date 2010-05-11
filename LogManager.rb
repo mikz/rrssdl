@@ -108,8 +108,8 @@ class LogManager
             @logger.info { str }
             cache(hash)
         else
-            @logger.debug { "hash found for log string: '#{str}'" }
-            @logger.debug { "'#{hash}' is in {#{@hashes.join(',')}}" }
+            @logger.info { "hash found for log string: '#{str}'" }
+            @logger.info { "'#{hash}' is in {#{@hashes.join(',')}}" }
         end
     end
 
@@ -120,20 +120,28 @@ class LogManager
             @logger.notice { str }
             cache(hash)
         else
-            @logger.debug { "hash found for log string: '#{str}'" }
-            @logger.debug { "'#{hash}' is in {#{@hashes.join(',')}}" }
+            @logger.notice { "hash found for log string: '#{str}'" }
+            @logger.notice { "'#{hash}' is in {#{@hashes.join(',')}}" }
         end
     end
 
     def warn(&block)
-        @logger.warn { str }
+        str = yield
+        hash = str.to_s.hash
+        unless @hashes.include?(hash)
+            @logger.notice { str }
+            cache(hash)
+        else
+            @logger.warn { "hash found for log string: '#{str}'" }
+            @logger.warn { "'#{hash}' is in {#{@hashes.join(',')}}" }
+        end
     end
 
     def error(&block)
-        @logger.error { str }
+        @logger.error { yield }
     end
 
     def fatal(&block)
-        @logger.fatal { str }
+        @logger.fatal { yield }
     end
 end
