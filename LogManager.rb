@@ -98,42 +98,39 @@ class LogManager
     end
 
     def debug(&block)
-        @logger.debug { yield }
+        #@logger.debug { yield }
     end
 
-    def info(&block)
+    def info(cachable = true, &block)
         str = yield
-        hash = str.to_s.hash
+        hash = str.to_s.hash.to_i
         unless @hashes.include?(hash)
-            @logger.info { str }
-            cache(hash)
+            @logger.debug { "'#{hash}' is NOT in {#{@hashes.join(',')}}" }
+            @logger.info { cache(hash) if cachable; str }
         else
-            @logger.info { "hash found for log string: '#{str}'" }
-            @logger.info { "'#{hash}' is in {#{@hashes.join(',')}}" }
+            @logger.debug { "'#{hash}' is in {#{@hashes.join(',')}}" }
         end
     end
 
-    def notice(&block)
+    def notice(cachable = true, &block)
         str = yield
-        hash = str.to_s.hash
+        hash = str.to_s.hash.to_i
         unless @hashes.include?(hash)
-            @logger.notice { str }
-            cache(hash)
+            @logger.debug { "'#{hash}' is NOT in {#{@hashes.join(',')}}" }
+            @logger.notice { cache(hash) if cachable; str }
         else
-            @logger.notice { "hash found for log string: '#{str}'" }
-            @logger.notice { "'#{hash}' is in {#{@hashes.join(',')}}" }
+            @logger.debug { "'#{hash}' is in {#{@hashes.join(',')}}" }
         end
     end
 
-    def warn(&block)
+    def warn(cachable = true, &block)
         str = yield
-        hash = str.to_s.hash
+        hash = str.to_s.hash.to_i
         unless @hashes.include?(hash)
-            @logger.notice { str }
-            cache(hash)
+            @logger.debug { "'#{hash}' is NOT in {#{@hashes.join(',')}}" }
+            @logger.warn { cache(hash) if cachable; str }
         else
-            @logger.warn { "hash found for log string: '#{str}'" }
-            @logger.warn { "'#{hash}' is in {#{@hashes.join(',')}}" }
+            @logger.debug { "'#{hash}' is in {#{@hashes.join(',')}}" }
         end
     end
 

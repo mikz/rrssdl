@@ -98,7 +98,7 @@ class Show
                 # check if either we are in the same season and we haven't downloaded the provided episode, or if a new season has started
                 @logger.debug {"'#{title}' is season #{season}, episode #{episode}"}
                 if ((season == @season.to_i and not @episodes.include?(episode)) or season > @season.to_i)
-                    @logger.info {"Found New Show For #{@id}: Season #{season}, Episode #{episode} (#{@season}:#{@episodes.join(',')})"}
+                    @logger.info(false) {"Found New Show For #{@id}: Season #{season}, Episode #{episode} (#{@season}:#{@episodes.join(',')})"}
                     # all good, return the season and episode
                     ret = [true, season, episode]
                 else
@@ -190,7 +190,7 @@ class Show
             if ep_info[0] == false
                 # download anyways if we want to override proper releases
                 if proper?(title, ep_info[2] + 0.1)
-                    @logger.notice {"#{title} is a PROPER release, downloading even though it is old"}
+                    @logger.notice(false) {"#{title} is a PROPER release, downloading even though it is old"}
                     dlpath = File.join(File.expand_path(conf['download_path']), "#{title.gsub(/[^\w]/, '_').gsub(/_+/, '_')}.torrent")
                     ep_info[2] += 0.1
                 else
@@ -204,13 +204,13 @@ class Show
                 review = true
             # make sure the show shouldn't be rejected, if it is a reject we still download it to the review dir
             elsif reject?(title)
-                @logger.notice {"'#{title}' Was Rejected"}
+                @logger.notice(false) {"'#{title}' Was Rejected"}
                 dlpath = File.join(File.expand_path(conf['download_path_review']), "REVIEW-#{title.gsub(/[^\w]/, '_').gsub(/_+/, '_')}.torrent")
                 review = true
             # otherwise, everything is good.  try and download the file
             else
                 dlpath = File.join(File.expand_path(conf['download_path']), "#{title.gsub(/[^\w]/, '_').gsub(/_+/, '_')}.torrent")
-                @logger.notice {"Show '#{title}' has a new epidsode ready for download"}
+                @logger.notice(false) {"Show '#{title}' has a new epidsode ready for download"}
             end
             ret = [dlpath, review, ep_info]
         end

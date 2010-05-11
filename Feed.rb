@@ -120,12 +120,12 @@ class Feed
 
     def refresh_feed
         @logger.ftrace {'ENTER'}
-        @logger.info {"Refreshing Feed for #{@id} (#{@uri})"}
+        @logger.info(false) {"Refreshing Feed for #{@id} (#{@uri})"}
 
         feed = read_feed
         return if feed.nil?
 
-        @logger.info {"Found #{feed.items.length} Items, Processing..."}
+        @logger.info(false) {"Found #{feed.items.length} Items, Processing..."}
         feed.items.each do |i|
             str = <<EOF
 ------------------------
@@ -142,7 +142,7 @@ EOF
                     @logger.debug {"#{s.id} Is Paired With #{@id}"}
                     dlpath = s.match(i)
                     unless dlpath.nil?
-                        @logger.notice {"(#{@id}) Downloaded #{dlpath} (#{s.id})"}
+                        @logger.notice(false) {"(#{@id}) Downloaded #{dlpath} (#{s.id})"}
                         shell_cmd = cmd(s)
                         unless shell_cmd.nil? or shell_cmd.empty?
                             torfile = File.basename(dlpath)
@@ -159,8 +159,8 @@ EOF
                 end
             end
         end
-        @logger.info { "Feed '#{@id}' Contains\r\n#{feed.items.map { |x| "\t#{x.title}" }.sort.join("\r\n")}" }
-        @logger.info {'Done Processing Items'}
+        @logger.debug { "Feed '#{@id}' Contains\r\n#{feed.items.map { |x| "\t#{x.title}" }.sort.join("\r\n")}" }
+        @logger.info(false) {'Done Processing Items'}
         @logger.ftrace {'LEAVE'}
         nil
     end
