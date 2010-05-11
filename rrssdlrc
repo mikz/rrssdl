@@ -5,6 +5,9 @@
 # Daemon mode
 #daemon = true
 
+# how many log items to cache for avoiding duplicate log items
+log_cache_size = 10
+
 # PROPER releases override
 # -- downloads an old ep if it is a PROPER release
 proper_override = true
