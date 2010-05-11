@@ -152,6 +152,7 @@ EOF
                             Timeout::timeout(60) { result = `#{shell_cmd}` }
                             @logger.debug {"Returned [#{result}]"} unless result.nil?
                         end
+                        break
                     end
                 else
                     @logger.debug {"#{s.id} Isn't Paired With #{@id}"}

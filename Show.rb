@@ -100,10 +100,10 @@ class Show
                 if ((season == @season.to_i and not @episodes.include?(episode)) or season > @season.to_i)
                     @logger.info {"Found New Show For #{@id}: Season #{season}, Episode #{episode} (#{@season}:#{@episodes.join(',')})"}
                     # all good, return the season and episode
-                    ret = [season, episode]
+                    ret = [true, season, episode]
                 else
                     @logger.debug {"'#{title}' Is Old (S#{sprintf("%02d", @season)}, E:#{@episodes.join(',')})"}
-                    ret = false
+                    ret = [false, season, episode]
                 end
                 break
             end
@@ -130,14 +130,14 @@ class Show
         ret
     end
 
-    def proper?(title)
+    def proper?(title, episode)
         @logger.ftrace {'ENTER'}
-        ret = nil
-        @logger.debug {'Checking for PROPER release'}
-        if conf.has_key?('proper_override') and title.upcase.include?('PROPER')
-            ret = true
-        else
-            ret = false
+        ret = false
+        if conf.has_key?('proper_override')
+            @logger.debug {'Checking for PROPER release'}
+            if title.upcase.include?('PROPER') and @episodes.include?(episode) == false
+                ret = true
+            end
         end
         @logger.ftrace{'LEAVE'}
         ret
@@ -155,12 +155,12 @@ class Show
         ret = ret.nil? ? nil : review ? nil : ret
         # if nothing has gone wrong, update our status
         unless ret.nil?
-            if (ep_info[0].to_i > @season)
+            if (ep_info[1].to_i > @season)
                 # new season detected, clear the current ep list
                 @episodes.clear
             end
-            @season = ep_info[0].to_i
-            @episodes.push(ep_info[1].to_i).sort!
+            @season = ep_info[1].to_i
+            @episodes.push(ep_info[2]).sort!
 
             # finally, save the state to disk
             @main.save_state
@@ -187,11 +187,12 @@ class Show
             review = false
             dl = true
             # if it is old, then we have nothing to do
-            if ep_info == false
+            if ep_info[0] == false
                 # download anyways if we want to override proper releases
-                if proper?(title)
+                if proper?(title, ep_info[2] + 0.1)
                     @logger.notice {"#{title} is a PROPER release, downloading even though it is old"}
                     dlpath = File.join(File.expand_path(conf['download_path']), "#{title.gsub(/[^\w]/, '_').gsub(/_+/, '_')}.torrent")
+                    ep_info[2] += 0.1
                 else
                     @logger.info {"#{title} is old, skipping"}
                     ret = nil
