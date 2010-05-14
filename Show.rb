@@ -228,15 +228,15 @@ class Show
                 @logger.warn {"'#{dlpath}' already exists, not downloading"}
                 ret = nil
             else
-            @logger.debug {"Downloading #{uri} to #{dlpath}"}
-            # download the uri
-            uri = URI.escape(uri, '[]')
-            @logger.info {"Escaped URI => #{uri}"}
-            File.open(dlpath, 'w') do |f|
-                f.write(open(uri).read)
-                f.close
-            end
-            ret = dlpath
+                @logger.debug {"Downloading #{uri} to #{dlpath}"}
+                # download the uri
+                uri = URI.escape(uri, '[]')
+                @logger.info {"Escaped URI => #{uri}"}
+                File.open(dlpath, 'w') do |f|
+                    f.write(open(uri).read)
+                    f.close
+                end
+                ret = dlpath
             end
         rescue => e
             @logger.error {"Download Error: #{e}"}
