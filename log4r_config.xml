@@ -15,7 +15,7 @@
     <outputter name="file" type="FileOutputter" trunc="true">
         <filename>/tmp/rrssdl.log</filename>
         <formatter type="Log4r::PatternFormatter">
-            <pattern>[%6l %d]: %M [%t]</pattern>
+            <pattern>[%6l %d]: %M</pattern>
         </formatter>
     </outputter>
 
@@ -35,7 +35,7 @@
         <outputter>screen</outputter>
     </logger>
 
-    <logger name="screen::file" level="INFO" additive="true" trace="true">
+    <logger name="screen::file" level="INFO" additive="true" trace="false">
         <outputter>file</outputter>
     </logger>
 
