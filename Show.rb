@@ -186,8 +186,13 @@ class Show
             dlpath = nil
             review = false
             dl = true
+            # show's title doesn't have season/ep info, we download it anyways, but to the review dir
+            if ep_info.nil?
+                @logger.warn {"Couldn't Determine Season and Episode Info For '#{title}'"}
+                dlpath = File.join(File.expand_path(conf['download_path_review']), "REVIEW-#{title.gsub(/[^\w]/, '_').gsub(/_+/, '_')}.torrent")
+                review = true
             # if it is old, then we have nothing to do
-            if ep_info[0] == false
+            elsif ep_info[0] == false
                 # download anyways if we want to override proper releases
                 if proper?(title, ep_info[2] + 0.1)
                     @logger.notice(false) {"#{title} is a PROPER release, downloading even though it is old"}
@@ -197,11 +202,6 @@ class Show
                     @logger.info {"#{title} is old, skipping"}
                     ret = nil
                 end
-            # show's title doesn't have season/ep info, we download it anyways, but to the review dir
-            elsif ep_info.nil?
-                @logger.warn {"Couldn't Determine Season and Episode Info For '#{title}'"}
-                dlpath = File.join(File.expand_path(conf['download_path_review']), "REVIEW-#{title.gsub(/[^\w]/, '_').gsub(/_+/, '_')}.torrent")
-                review = true
             # make sure the show shouldn't be rejected, if it is a reject we still download it to the review dir
             elsif reject?(title)
                 @logger.notice(false) {"'#{title}' Was Rejected"}
@@ -239,7 +239,7 @@ class Show
                 ret = dlpath
             end
         rescue => e
-            @logger.error {"Download Error: #{e}"}
+            @logger.error {"Download Error: #{e}\r\n#{e.backtrace}"}
             ret = nil
         end
         @logger.ftrace {'LEAVE'}

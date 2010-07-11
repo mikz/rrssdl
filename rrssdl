@@ -98,7 +98,7 @@ EOF
             if @logger.nil?
                 warn("Option Parser Error: #{e}")
             else
-                @logger.error {"Option Parser Error: #{e}"}
+                @logger.error {"Option Parser Error: #{e}\r\n#{e.backtrace}"}
             end
         end
 
@@ -150,7 +150,7 @@ EOF
             Dir.mkdir(conf['download_path']) unless File.directory?(conf['download_path'])
             Dir.mkdir(conf['download_path_review']) unless File.directory?(conf['download_path_review'])
         rescue => e
-            @logger.error {"Directory Creation Error: #{e}"}
+            @logger.error {"Directory Creation Error: #{e}\r\n#{e.backtrace}"}
         end
 
         load_state

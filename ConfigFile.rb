@@ -131,7 +131,7 @@ class ConfigFile
                 end
             end
         rescue => e
-            @logger.error {"Config Write Error: #{e}"}
+            @logger.error {"Config Write Error: #{e}\r\n#{e.backtrace}"}
         end
     end
 end

@@ -62,7 +62,7 @@ class Feed
                     sleep(@refresh_sec)
                     sync_refresh_feed
                 rescue => e
-                    @logger.error {"RSS Feed Error (#{@id}): #{e}"}
+                    @logger.error {"RSS Feed Error (#{@id}): #{e}\r\n#{e.backtrace}"}
                 end
             end
         end
@@ -97,7 +97,7 @@ class Feed
             raise "Unable to parse RSS Feed for #{@id} (#{@uri})" if feed.nil?
             ret = feed
         rescue => e
-            @logger.error {"RSS Feed Error (#{@id}): #{e}"}
+            @logger.error {"RSS Feed Error (#{@id}): #{e}\r\n#{e.backtrace}"}
             ret = nil
         end
         @logger.ftrace {'LEAVE'}
@@ -110,9 +110,9 @@ class Feed
             @logger.debug {"Performing Syncronized Feed Refresh"}
             @main.mut.synchronize { Timeout::timeout(@timeout) { refresh_feed } }
         rescue => e
-            @logger.error {"RSS Feed Refresh Error (#{@id}): #{e}"}
+            @logger.error {"RSS Feed Refresh Error (#{@id}): #{e}\r\n#{e.backtrace}"}
         rescue Timeout::Error => e
-            @logger.error {"RSS Feed Refresh Error (#{@id}): #{e}"}
+            @logger.error {"RSS Feed Refresh Error (#{@id}): #{e}\r\n#{e.backtrace}"}
         end
         @logger.ftrace {'LEAVE'}
         nil
